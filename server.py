@@ -14,6 +14,8 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         db = self.application.db
         messages = db.chat.find()
+        # messages = [message for message in messages]
+        # print messages
         self.render('index.html', messages=messages)
 
 class WebSocket(tornado.websocket.WebSocketHandler):
