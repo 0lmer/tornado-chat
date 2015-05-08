@@ -14,12 +14,13 @@ class MainHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
         db = self.application.db
-        db.chat.find(callback=self._on_response)
 
-    def _on_response(self, response, error):
-        if error:
-            raise tornado.web.HTTPError(500)
-        self.render('index.html', messages=response)
+        def _on_response(response, error):
+            if error:
+                raise tornado.web.HTTPError(500)
+            self.render('index.html', messages=response)
+
+        db.chat.find(callback=_on_response)
 
 
 class WebSocket(tornado.websocket.WebSocketHandler):
