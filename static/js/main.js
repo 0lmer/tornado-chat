@@ -3,7 +3,10 @@ $(function () {
     var Socket = {
         ws: null,
         init: function () {
-            ws = new WebSocket('ws://' + document.location.host + '/websocket');
+            ws = new SockJS('http://' + document.location.host + '/websocket', null, {
+                'protocols_whitelist': ['websocket', 'xdr-streaming', 'xhr-streaming', 'iframe-eventsource',
+                    'iframe-htmlfile', 'xdr-polling', 'xhr-polling', 'iframe-xhr-polling', 'jsonp-polling']
+            });
             ws.onopen = function () {
                 console.log('Socket opened');
             };

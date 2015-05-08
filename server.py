@@ -6,8 +6,8 @@ import tornado.web
 import tornado.ioloop
 import tornado.websocket
 from tornado import template
-# import pymongo
 import asyncmongo
+import sockjs.tornado
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -23,9 +23,13 @@ class MainHandler(tornado.web.RequestHandler):
         db.chat.find(callback=_on_response)
 
 
-class WebSocket(tornado.websocket.WebSocketHandler):
-    def open(self):
-        self.application.webSocketsPool.append(self)
+class SockJSHandler(sockjs.tornado.SockJSConnection):
+    participants = set()
+    application = None
+
+    def on_open(self, request):
+        self.broadcast(self.participants, json.dumps({"text": "Someone joined.", "user": "system"}))
+        self.participants.add(self)
 
     def on_message(self, message):
         db = self.application.db
@@ -34,31 +38,32 @@ class WebSocket(tornado.websocket.WebSocketHandler):
         def _send_to_another_people(response, error):
             if error:
                 return
-            for key, value in enumerate(self.application.webSocketsPool):
+            for key, value in enumerate(self.participants):
                 if value != self:
-                    value.ws_connection.write_message(message)
+                    participants = (value, )
+                    self.broadcast(participants, message)
 
         db.chat.insert(message_dict, callback=_send_to_another_people)
 
     def on_close(self, message=None):
-        for key, value in enumerate(self.application.webSocketsPool):
-            if value == self:
-                del self.application.webSocketsPool[key]
+        self.participants.remove(self)
+        self.broadcast(self.participants, json.dumps({"text": "Someone left.", "user": "system"}))
 
 
 class Application(tornado.web.Application):
     def __init__(self):
-        self.webSocketsPool = []
-
         settings = {
             'static_url_prefix': '/static/',
         }
-        handlers = (
+        handlers = [
             (r'/', MainHandler),
-            (r'/websocket/?', WebSocket),
             (r'/static/(.*)', tornado.web.StaticFileHandler,
              {'path': 'static/'}),
-        )
+        ]
+
+        SockJSHandler.application = self
+        ChatRouter = sockjs.tornado.SockJSRouter(SockJSHandler, '/websocket')
+        handlers += ChatRouter.urls
 
         tornado.web.Application.__init__(self, handlers)
 
