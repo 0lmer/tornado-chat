@@ -3,7 +3,7 @@ $(function () {
     var Socket = {
         ws: null,
         init: function () {
-            ws = new SockJS('http://' + document.location.host + '/websocket', null, {
+            ws = new SockJS('http://' + document.location.host + '/chat/ws', null, {
                 'protocols_whitelist': ['websocket', 'xdr-streaming', 'xhr-streaming', 'iframe-eventsource',
                     'iframe-htmlfile', 'xdr-polling', 'xhr-polling', 'iframe-xhr-polling', 'jsonp-polling']
             });
