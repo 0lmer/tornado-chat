@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import asyncmongo
+from session import RedisSessionStore
+import tornadoredis
 from handlers.base import BaseSockJSHandler
 
 import tornado.httpserver
@@ -17,6 +19,7 @@ from urls import url_patterns
 class TornadoApplication(tornado.web.Application):
     def __init__(self):
         tornado.web.Application.__init__(self, url_patterns, **settings)
+        self.session_store = RedisSessionStore(self.redis_client)
 
     @property
     def db(self):
@@ -25,6 +28,12 @@ class TornadoApplication(tornado.web.Application):
                                              maxconnections=50, dbname='chat')
         return self._db
 
+    @property
+    def redis_client(self):
+        if not hasattr(self, '_redis_client'):
+            self._redis_client = tornadoredis.Client()
+            self._redis_client.connect()
+        return self._redis_client
 
 def main():
     app = TornadoApplication()
