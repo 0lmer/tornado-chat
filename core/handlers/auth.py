@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
-from handlers.base import BaseHandler, BaseSockJSHandler
 import json
+from core.handlers.base import BaseHandler, BaseSockJSHandler
+
+
+class LoginHandler(BaseHandler):
+
+    def get(self):
+        self.render('core/login.html')
+
+    def post(self):
+        self.set_secure_cookie("user", self.get_argument("name"))
+        self.redirect("/")
 
 
 class AuthSockJSHandler(BaseSockJSHandler):

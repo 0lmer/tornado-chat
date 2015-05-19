@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import asyncmongo
-from session import RedisSessionStore
+from core.session import RedisSessionStore
 import tornadoredis
-from handlers.base import BaseSockJSHandler
+from core.handlers.base import BaseSockJSHandler
 
 import tornado.httpserver
 import tornado.ioloop

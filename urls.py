@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-from handlers import base, chat
-import sockjs.tornado
+from chat.urls import url_patterns as chat_urls
+from core.urls import url_patterns as core_urls
 
-url_patterns = [
-    (r"/", base.MainHandler),
-    (r"/chat", chat.ChatPageHandler),
-]
-ChatRouter = sockjs.tornado.SockJSRouter(chat.ChatAPIHandler, '/chat/ws')
-url_patterns += ChatRouter.urls
+url_patterns = []
+url_patterns += chat_urls
+url_patterns += core_urls

@@ -1,30 +1,18 @@
 # -*- coding: utf-8 -*-
-from handlers.auth import AuthSockJSHandler
-from handlers.base import BaseSockJSHandler, BaseHandler
-import tornado.web
-from tornado import gen
-import sockjs.tornado
 import json
+from core.handlers.auth import AuthSockJSHandler
+from core.handlers.base import BaseSockJSHandler, BaseHandler
+from tornado import gen
 
 
 class ChatPageHandler(BaseHandler):
-    # @tornado.web.asynchronous
-    # def get(self):
-    #     db = self.application.db
-    #
-    #     def _on_response(response, error):
-    #         if error:
-    #             raise tornado.web.HTTPError(500)
-    #         self.render('chat.html', messages=response)
-    #
-    #     db.chat.find(callback=_on_response)
 
     @gen.coroutine
     def get(self):
         db = self.application.db
         response, error = yield gen.Task(db.chat.find)
         messages = response[0]
-        self.render('chat.html', messages=messages)
+        self.render('chat/chat.html', messages=messages)
 
 
 class ChatAPIHandler(AuthSockJSHandler, BaseSockJSHandler):

@@ -15,6 +15,12 @@ settings = {}
 settings["debug"] = True
 settings["cookie_secret"] = "askdfjpo83q47r9haskldfjh8"
 settings["login_url"] = "/login"
-settings["static_path"] = os.path.join(os.path.dirname(__file__), "static")
-settings["template_path"] = os.path.join(os.path.dirname(__file__), "templates")
+settings["root_path"] = os.path.dirname(__file__)
+settings["static_path"] = os.path.join(settings['root_path'], "static")
+# settings["template_path"] = settings['root_path']  # os.path.join(settings['root_path'], "templates")
 settings["xsrf_cookies"] = False
+
+settings["apps"] = [
+    'core',
+    'chat',
+]
