@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __author__ = 'kdvo'
 
-from chat.handlers import chat
+from chatapp.handlers import chat
 import sockjs.tornado
 
 url_patterns = [

@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import asyncmongo
+from core.connections import db_client, redis_client
 from core.session import RedisSessionStore
-import tornadoredis
 from core.handlers.base import BaseSockJSHandler
 
 import tornado.httpserver
@@ -24,14 +23,13 @@ class TornadoApplication(tornado.web.Application):
     @property
     def db(self):
         if not hasattr(self, '_db'):
-            self._db = asyncmongo.Client(pool_id='chat', host='127.0.0.1', port=27017, maxcached=10,
-                                             maxconnections=50, dbname='chat')
+            self._db = db_client
         return self._db
 
     @property
     def redis_client(self):
         if not hasattr(self, '_redis_client'):
-            self._redis_client = tornadoredis.Client()
+            self._redis_client = redis_client
             self._redis_client.connect()
         return self._redis_client
 

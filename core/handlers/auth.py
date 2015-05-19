@@ -29,7 +29,7 @@ class AuthSockJSHandler(BaseSockJSHandler):
             response = json.dumps({'user': 'system', 'status': 'error', 'text': 'Session id does not exist!'})
             self.send(response)
             self.close()
-            raise ValueError(message)
+            raise ValueError(response)
 
         if auth_sid:
             self._sid = auth_sid

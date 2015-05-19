@@ -12,6 +12,8 @@ define("debug", default=False, help="debug mode")
 
 settings = {}
 
+settings["project_name"] = 'chat'
+
 settings["debug"] = True
 settings["cookie_secret"] = "askdfjpo83q47r9haskldfjh8"
 settings["login_url"] = "/login"
@@ -22,5 +24,9 @@ settings["xsrf_cookies"] = False
 
 settings["apps"] = [
     'core',
-    'chat',
+    'chatapp',
 ]
+
+settings["mongo_db_name"] = settings["project_name"]
+settings["mongo_host"] = "127.0.0.1"
+settings["mongo_port"] = 27017

@@ -2,6 +2,7 @@
 import json
 from core.handlers.auth import AuthSockJSHandler
 from core.handlers.base import BaseSockJSHandler, BaseHandler
+from chatapp.models import Message
 from tornado import gen
 
 
@@ -10,12 +11,13 @@ class ChatPageHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         db = self.application.db
-        response, error = yield gen.Task(db.chat.find)
-        messages = response[0]
-        self.render('chat/chat.html', messages=messages)
+        response = yield Message.find()
+        messages = response
+        self.render('chatapp/chat.html', messages=messages)
 
 
-class ChatAPIHandler(AuthSockJSHandler, BaseSockJSHandler):
+# class ChatAPIHandler(AuthSockJSHandler, BaseSockJSHandler):
+class ChatAPIHandler(BaseSockJSHandler):
     participants = set()
 
     def on_open(self, request):
@@ -29,7 +31,7 @@ class ChatAPIHandler(AuthSockJSHandler, BaseSockJSHandler):
         db = self.application.db
         message_dict = json.loads(message)
 
-        yield gen.Task(db.chat.insert, message_dict)
+        message_id = yield Message.insert(message_dict)
         for key, value in enumerate(self.participants):
                 if value != self:
                     participants = (value, )
