@@ -27,8 +27,8 @@ class PikaClient(object):
     def connect(self):
 
         if self.connecting:
-                print('PikaClient: Already connecting to RabbitMQ')
-                return
+            print('PikaClient: Already connecting to RabbitMQ')
+            return
 
         print('PikaClient: Connecting to RabbitMQ on localhost:5672, Object: %s' % (self,))
 
@@ -72,7 +72,6 @@ class PikaClient(object):
                                    callback=self.on_queue_declared)
 
     def on_queue_declared(self, frame):
-
         print('PikaClient: Queue Declared, Binding Queue')
         self.channel.queue_bind(exchange='tornado',
                                 queue=self.queue_name,
