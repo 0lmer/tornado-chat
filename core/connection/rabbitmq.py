@@ -8,12 +8,13 @@ import tornado.ioloop
 
 class PikaClient(object):
 
-    def __init__(self):
-
+    def __init__(self, queue_name=None):
+        if queue_name is None:
+            queue_name = "queue-%s" % (id(self),)
         # Construct a queue name we'll use for this instance only
 
         #Giving unique queue for each consumer under a channel.
-        self.queue_name = "queue-%s" % (id(self),)
+        self.queue_name = queue_name
         # Default values
         self.connected = False
         self.connecting = False
