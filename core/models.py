@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from core.connections import db_client
+from core.connection.mongo import mongo_client
 from tornado import gen
 
 
 class MongoModel(object):
-    db = db_client
+    db = mongo_client
     collection_name = None
 
     @classmethod

@@ -10,7 +10,7 @@ class ChatPageHandler(BaseHandler):
 
     @gen.coroutine
     def get(self):
-        db = self.application.db
+        # db = self.application.db
         response = yield Message.find()
         messages = response
         self.render('chatapp/chat.html', messages=messages)
@@ -28,7 +28,6 @@ class ChatAPIHandler(BaseSockJSHandler):
     @gen.coroutine
     def on_message(self, message):
         super(ChatAPIHandler, self).on_message(message)
-        db = self.application.db
         message_dict = json.loads(message)
 
         message_id = yield Message.insert(message_dict)

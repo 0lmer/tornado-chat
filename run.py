@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from core.connections import db_client, redis_client
+from core.connection.mongo import mongo_client
+from core.connection.redis import redis_client
 from core.session import RedisSessionStore
 from core.handlers.base import BaseSockJSHandler
 
@@ -23,7 +24,7 @@ class TornadoApplication(tornado.web.Application):
     @property
     def db(self):
         if not hasattr(self, '_db'):
-            self._db = db_client
+            self._db = mongo_client
         return self._db
 
     @property
