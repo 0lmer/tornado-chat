@@ -8,13 +8,16 @@ import tornado.ioloop
 
 class PikaClient(object):
 
-    def __init__(self, queue_name=None):
-        if queue_name is None:
-            queue_name = "queue-%s" % (id(self),)
-        # Construct a queue name we'll use for this instance only
+    def __init__(self, exchange="tornado", queue_name=None, routing_key="tornado.*"):
 
+        self.exchange = exchange
+        self.routing_key = routing_key
+        if queue_name is None:
+            # Construct a queue name we'll use for this instance only
+            queue_name = "queue-%s" % (id(self),)
         #Giving unique queue for each consumer under a channel.
         self.queue_name = queue_name
+
         # Default values
         self.connected = False
         self.connecting = False
@@ -57,7 +60,7 @@ class PikaClient(object):
               (channel,))
         self.channel = channel
 
-        self.channel.exchange_declare(exchange='tornado',
+        self.channel.exchange_declare(exchange=self.exchange,
                                       type="direct",
                                       auto_delete=True,
                                       durable=False,
@@ -73,9 +76,9 @@ class PikaClient(object):
 
     def on_queue_declared(self, frame):
         print('PikaClient: Queue Declared, Binding Queue')
-        self.channel.queue_bind(exchange='tornado',
+        self.channel.queue_bind(exchange=self.exchange,
                                 queue=self.queue_name,
-                                routing_key='tornado.*',
+                                routing_key=self.routing_key,
                                 callback=self.on_queue_bound)
 
     def on_queue_bound(self, frame):
@@ -105,8 +108,8 @@ class PikaClient(object):
         properties = pika.BasicProperties(
             content_type="text/plain", delivery_mode=1)
 
-        self.channel.basic_publish(exchange='tornado',
-                                   routing_key='tornado.*',
+        self.channel.basic_publish(exchange=self.exchange,
+                                   routing_key=self.routing_key,
                                    body=ws_msg,
                                    properties=properties)
 

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-import json
-from core.connection.rabbitmq import PikaClient
 from core.handlers.auth import AuthSockJSHandler
 from core.handlers.base import BaseSockJSHandler, BaseHandler
 from chatapp.models import Message
+from core.handlers.subscribe import RabbitMQSubscribeHandler, RedisSubscribeHandler, TornadoSubscribeHandler
 from tornado import gen
-import tornado.ioloop
+import json
 
 
 class ChatPageHandler(BaseHandler):
@@ -19,30 +18,7 @@ class ChatPageHandler(BaseHandler):
 
 
 # class ChatAPIHandler(AuthSockJSHandler, BaseSockJSHandler):
-class ChatAPIHandler(BaseSockJSHandler):
-    participants = set()
-
-    def on_open(self, request):
-        super(ChatAPIHandler, self).on_open(request)
-        self.broadcast(self.participants, json.dumps({"text": "Someone joined.", "user": "system"}))
-        self.participants.add(self)
-        self.pika_client = PikaClient()
-        self.pika_client.websocket = self
-        tornado.ioloop.IOLoop.instance().add_timeout(1, self.pika_client.connect)
-
-    @gen.coroutine
-    def on_message(self, message):
-        super(ChatAPIHandler, self).on_message(message)
-        message_dict = json.loads(message)
-
-        message_id = yield Message.insert(message_dict)
-        self.pika_client.sample_message(message)  # self.write_message()
-
-    def write_message(self, message):
-        participants = (self, )
-        self.broadcast(participants, message)
-
-    def on_close(self, message=None):
-        self.participants.remove(self)
-        self.broadcast(self.participants, json.dumps({"text": "Someone left.", "user": "system"}))
-        self.pika_client.connection.close()
+class ChatAPIHandler(TornadoSubscribeHandler):
+    CHANNEL = 'messages'
+    JOIN_MESSAGE = json.dumps({"text": "Someone joined.", "user": "system"})
+    LEAVE_MESSAGE = json.dumps({"text": "Someone left.", "user": "system"})
