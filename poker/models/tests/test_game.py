@@ -2,7 +2,7 @@
 
 import unittest
 from poker.models.cards import HoldemDeck, Deck, Card, Suit, Heart
-from poker.models.game import Hand, Gamer, Room
+from poker.models.game import Hand, Gamer, Table
 
 
 class HandTest(unittest.TestCase):
@@ -24,9 +24,9 @@ class HandTest(unittest.TestCase):
         self.assertEqual(len(self.hand.cards), 0)
 
 
-class RoomTest(unittest.TestCase):
+class TableTest(unittest.TestCase):
     def setUp(self):
-        self.room = Room()
+        self.room = Table()
         for step in xrange(0, 4):
             self.room.add_gamer(Gamer())
 

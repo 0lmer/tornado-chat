@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import random
+from random import shuffle
 """
     Suits (in playing cards) – Масти (игральные).
     Deck – колода
@@ -24,6 +25,7 @@ class Deck(object):
                 for rank in xrange(*rank_range):
                     card = Card.from_rank(suit=suit, rank=rank)
                     self._cards.append(card)
+        shuffle(self._cards)
 
     def pop_random_card(self):
         max_idx = len(self._cards) - 1
