@@ -16,17 +16,19 @@ import random
 """
 
 class Deck(object):
-    def __init__(self, suits=None, rate_range=None):
+    def __init__(self, suits=None, rank_range=None):
         self._cards = []
         suits = [] if suits is None else suits
         for suit in suits:
-            if rate_range:
-                for rate in xrange(*rate_range):
-                    card = Card.from_rate(suit=suit, rate=rate)
+            if rank_range:
+                for rank in xrange(*rank_range):
+                    card = Card.from_rank(suit=suit, rank=rank)
                     self._cards.append(card)
 
     def pop_random_card(self):
-        idx = random.randint(0, len(self._cards))
+        max_idx = len(self._cards) - 1
+        max_idx = max_idx if max_idx >= 0 else 0
+        idx = random.randint(0, max_idx)
         card = self._cards.pop(idx)
         return card
 
@@ -34,7 +36,7 @@ class Deck(object):
 class HoldemDeck(Deck):
     def __init__(self):
         suits = [Suit.from_type(suit_type) for suit_type in Suit.TYPES]
-        super(HoldemDeck, self).__init__(suits=suits, rate_range=(2, 15, ))
+        super(HoldemDeck, self).__init__(suits=suits, rank_range=(2, 15, ))
 
 
 class Card(object):
@@ -42,25 +44,25 @@ class Card(object):
             '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
             'J': 11, 'Q': 12, 'K': 13, 'A': 14
     }
-    RATE_TO_DENOMINTAION = {rate: denomination for denomination, rate in DENOMINATION_TO_RATE.iteritems()}
+    RATE_TO_DENOMINTAION = {rank: denomination for denomination, rank in DENOMINATION_TO_RATE.iteritems()}
 
     def __init__(self, suit):
         self.suit = suit
         self.denomination = None  # [2-10, J, Q, K, A]
-        self.rate = None  # 2-14
+        self.rank = None  # 2-14
 
     @classmethod
     def from_denomination(cls, suit, denomination):
         instance = cls(suit)
         instance.denomination = denomination
-        instance.rate = cls.DENOMINATION_TO_RATE.get(denomination.upper())
+        instance.rank = cls.DENOMINATION_TO_RATE.get(denomination.upper())
         return instance
 
     @classmethod
-    def from_rate(cls, suit, rate):
+    def from_rank(cls, suit, rank):
         instance = cls(suit)
-        instance.rate = rate
-        instance.denomination = cls.RATE_TO_DENOMINTAION.get(rate)
+        instance.rank = rank
+        instance.denomination = cls.RATE_TO_DENOMINTAION.get(rank)
         return instance
 
     @property
@@ -68,7 +70,8 @@ class Card(object):
         return unicode(self)
 
     def __str__(self):
-        return "%(suit)s%(denomination)s" % {'suit': self.suit.STRING_SYMBOL.encode("utf-8"), 'denomination': self.denomination}
+        return "%(suit)s%(denomination)s" % {'suit': self.suit.STRING_SYMBOL.encode("utf-8"),
+                                             'denomination': self.denomination}
 
     def __unicode__(self):
         return u"%(suit)s%(denomination)s" % {'suit': self.suit.STRING_SYMBOL, 'denomination': self.denomination}
@@ -83,6 +86,22 @@ class Suit(object):
     TYPES = [HEARTS, DIAMONDS, CLUBS, SPADES]
     STRING_SYMBOL = u""
     STRING_SYMBOL_WHITE = u""
+
+    @classmethod
+    def get_hearts(cls):
+        return cls.from_type(cls.HEARTS)
+
+    @classmethod
+    def get_diamonds(cls):
+        return cls.from_type(cls.DIAMONDS)
+
+    @classmethod
+    def get_clubs(cls):
+        return cls.from_type(cls.CLUBS)
+
+    @classmethod
+    def get_spades(cls):
+        return cls.from_type(cls.SPADES)
 
     @classmethod
     def from_type(cls, suit_type):

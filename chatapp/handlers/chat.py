@@ -12,8 +12,7 @@ class ChatPageHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         # db = self.application.db
-        response = yield Message.find()
-        messages = response
+        messages = yield Message.find()
         self.render('chatapp/chat.html', messages=messages)
 
 

@@ -35,15 +35,15 @@ class CardTest(unittest.TestCase):
     JACK_RATE = 11
 
     def setUp(self):
-        self.suit = Suit.from_type(Suit.HEARTS)
+        self.suit = Suit.get_hearts()
 
-    def test_card_denomination_from_rate(self):
-        card = Card.from_rate(suit=self.suit, rate=self.JACK_RATE)
+    def test_card_denomination_from_rank(self):
+        card = Card.from_rank(suit=self.suit, rank=self.JACK_RATE)
         self.assertEqual(card.denomination, self.JACK_STR)
 
     def test_card_denomination_from_denomination(self):
         card = Card.from_denomination(suit=self.suit, denomination=self.QUEEN_STR)
-        self.assertEqual(card.rate, self.QUEEN_RATE)
+        self.assertEqual(card.rank, self.QUEEN_RATE)
 
     def test_card_description(self):
         card = Card.from_denomination(suit=self.suit, denomination=self.QUEEN_STR)
@@ -57,7 +57,7 @@ class CardTest(unittest.TestCase):
 
 class SuitTest(unittest.TestCase):
     def test_fabric_method(self):
-        suit = Suit.from_type(suit_type=Suit.HEARTS)
+        suit = Suit.get_hearts()
         self.assertIsInstance(suit, Heart)
 
     def test_suit_types_length(self):
