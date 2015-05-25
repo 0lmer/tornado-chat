@@ -2,7 +2,7 @@
 
 import unittest
 from poker.models.cards import HoldemDeck, Deck, Card, Suit, Heart
-from poker.models.game import Hand, Gamer, Table
+from poker.models.game import Hand, Gamer, Table, HoldemTable
 
 
 class HandTest(unittest.TestCase):
@@ -24,51 +24,125 @@ class HandTest(unittest.TestCase):
         self.assertEqual(len(self.hand.cards), 0)
 
 
+class GamerTest(unittest.TestCase):
+    def setUp(self):
+        self.gamer = Gamer()
+
+    def test_has_enough_money(self):
+        self.assertFalse(self.gamer.has_enough_money(amount=30))
+        self.assertTrue(self.gamer.has_enough_money(amount=0))
+
+    def test_add_card(self):
+        self.assertEqual(len(self.gamer.hand.cards), 0)
+        card = Card.from_string('Qd')
+        self.gamer.add_card(card)
+
+    def test_take_off_money(self, amount):
+        self._amount -= amount
+
 class TableTest(unittest.TestCase):
     def setUp(self):
-        self.room = Table()
+        self.table = Table()
         for step in xrange(0, 4):
-            self.room.add_gamer(Gamer())
+            self.table.add_gamer(Gamer())
 
-    def test_gamers_count(self):
-        self.assertEqual(len(self.room.gamers), 4)
+    def test_add_gamer(self):
+        self.assertEqual(len(self.table.gamers), 4)
+        self.table.add_gamer(Gamer())
+        self.assertEqual(len(self.table.gamers), 5)
+
+    def test_next_step(self):
+        self.table.next_step()
+        self.assertEqual(self.table.current_step, 1)
+        self.table.next_step()
+        self.assertEqual(self.table.current_step, 1)
+
+
+class HoldemTableTest(TableTest):
+    def setUp(self):
+        self.table = HoldemTable()
+        for step in xrange(0, 4):
+            self.table.add_gamer(Gamer())
 
     def test_preflop_cards(self):
-        self.room.preflop()
-        for gamer in self.room.gamers:
+        self.table.preflop()
+        for gamer in self.table.gamers:
             self.assertEqual(len(gamer.hand.cards), 2)
-        self.assertEqual(len(self.room.board.cards), 0)
+        self.assertEqual(len(self.table.board.cards), 0)
 
     def test_flop_cards(self):
-        self.room.preflop()
-        self.room.flop()
-        for gamer in self.room.gamers:
+        self.table.preflop()
+        self.table.flop()
+        for gamer in self.table.gamers:
             self.assertEqual(len(gamer.hand.cards), 2)
-        self.assertEqual(len(self.room.board.cards), 3)
+        self.assertEqual(len(self.table.board.cards), 3)
 
     def test_turn_cards(self):
-        self.room.preflop()
-        self.room.flop()
-        self.room.turn()
-        for gamer in self.room.gamers:
+        self.table.preflop()
+        self.table.flop()
+        self.table.turn()
+        for gamer in self.table.gamers:
             self.assertEqual(len(gamer.hand.cards), 2)
-        self.assertEqual(len(self.room.board.cards), 4)
+        self.assertEqual(len(self.table.board.cards), 4)
 
     def test_river_cards(self):
-        self.room.preflop()
-        self.room.flop()
-        self.room.turn()
-        self.room.river()
-        for gamer in self.room.gamers:
+        self.table.preflop()
+        self.table.flop()
+        self.table.turn()
+        self.table.river()
+        for gamer in self.table.gamers:
             self.assertEqual(len(gamer.hand.cards), 2)
-        self.assertEqual(len(self.room.board.cards), 5)
+        self.assertEqual(len(self.table.board.cards), 5)
 
     def test_gamers_limit_in_room(self):
         for step in xrange(0, 5):
-            self.room.add_gamer(Gamer())
-        self.assertRaises(OverflowError, self.room.add_gamer, Gamer())
+            self.table.add_gamer(Gamer())
+        self.assertRaises(OverflowError, self.table.add_gamer, Gamer())
+        
+    def test_next_step(self):
+        vasya = Gamer()
+        petya = Gamer()
+        dima = Gamer()
+        self.table.add_gamer(vasya)
+        self.table.add_gamer(petya)
+        self.table.add_gamer(dima)
+
+        self.assertEqual(len(dima.hand.cards), 0)
+        self.table.next_step()  # preflop
+        self.assertEqual(len(dima.hand.cards), 2)
+        self.assertEqual(len(self.table.board.cards), 0)
+
+        self.table.next_step()  # flop
+        self.assertEqual(len(dima.hand.cards), 2)
+        self.assertEqual(len(self.table.board.cards), 3)
+
+        self.table.next_step()  # turn
+        self.assertEqual(len(dima.hand.cards), 2)
+        self.assertEqual(len(self.table.board.cards), 4)
+
+        self.table.next_step()  # river
+        self.assertEqual(len(dima.hand.cards), 2)
+        self.assertEqual(len(self.table.board.cards), 5)
+
+        self.table.next_step()  # showdown
+        self.assertEqual(len(dima.hand.cards), 2)
+        self.assertEqual(len(self.table.board.cards), 5)
+
+        self.table.next_step()  # new preflop
+        self.assertEqual(len(dima.hand.cards), 2)
+        self.assertEqual(len(self.table.board.cards), 0)
+
+        self.table.next_step()  # new flop
+        self.assertEqual(len(dima.hand.cards), 2)
+        self.assertEqual(len(self.table.board.cards), 3)
 
     def test_bet(self):
         gamer = Gamer()
         amount = 100
-        self.assertEqual(self.bet(gamer, amount), False)
+        self.assertEqual(self.table.pot, 0)
+        self.table.bet(gamer, amount)
+        self.assertEqual(self.table.pot, 100)
+
+
+class EvaluatorTest(unittest.TestCase):
+    pass

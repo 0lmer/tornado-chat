@@ -16,6 +16,7 @@ from random import shuffle
     Joker – джокер
 """
 
+
 class Deck(object):
     def __init__(self, suits=None, rank_range=None):
         self._cards = []
@@ -25,7 +26,6 @@ class Deck(object):
                 for rank in xrange(*rank_range):
                     card = Card.from_rank(suit=suit, rank=rank)
                     self._cards.append(card)
-        shuffle(self._cards)
 
     def pop_random_card(self):
         max_idx = len(self._cards) - 1
@@ -33,6 +33,9 @@ class Deck(object):
         idx = random.randint(0, max_idx)
         card = self._cards.pop(idx)
         return card
+
+    def shuffle(self):
+        shuffle(self._cards)
 
 
 class HoldemDeck(Deck):
@@ -54,6 +57,15 @@ class Card(object):
         self.rank = None  # 2-14
 
     @classmethod
+    def from_string(cls, card_str):
+        """ Example: Qd
+        """
+        denomination = card_str[:-1]
+        suit = Suit.from_type_string(suit_type_string=card_str[-1:])
+        instance = cls.from_denomination(suit=suit, denomination=denomination)
+        return instance
+
+    @classmethod
     def from_denomination(cls, suit, denomination):
         instance = cls(suit)
         instance.denomination = denomination
@@ -72,20 +84,28 @@ class Card(object):
         return unicode(self)
 
     def __str__(self):
-        return "%(suit)s%(denomination)s" % {'suit': self.suit.STRING_SYMBOL.encode("utf-8"),
+        return "%(denomination)s%(suit)s" % {'suit': self.suit.STRING_SYMBOL.encode("utf-8"),
                                              'denomination': self.denomination}
 
     def __unicode__(self):
-        return u"%(suit)s%(denomination)s" % {'suit': self.suit.STRING_SYMBOL, 'denomination': self.denomination}
+        return u"%(denomination)s%(suit)s" % {'suit': self.suit.STRING_SYMBOL, 'denomination': self.denomination}
 
 
 class Suit(object):
     HEARTS = 1
+    HEARTS_STR = u"h"
+
     DIAMONDS = 2
+    DIAMONDS_STR = u"d"
+
     CLUBS = 3
+    CLUBS_STR = u"c"
+
     SPADES = 4
+    SPADES_STR = u"s"
 
     TYPES = [HEARTS, DIAMONDS, CLUBS, SPADES]
+    TYPES_STR = [HEARTS_STR, DIAMONDS_STR, CLUBS_STR, SPADES_STR]
     STRING_SYMBOL = u""
     STRING_SYMBOL_WHITE = u""
 
@@ -114,26 +134,39 @@ class Suit(object):
             cls.SPADES: Spade,
         }.get(suit_type)()
 
+    @classmethod
+    def from_type_string(cls, suit_type_string):
+        return {
+            cls.HEARTS_STR: Heart,
+            cls.DIAMONDS_STR: Diamond,
+            cls.CLUBS_STR: Club,
+            cls.SPADES_STR: Spade,
+        }.get(suit_type_string)()
+
 
 class Heart(Suit):
     TYPE = Suit.HEARTS
+    TYPE_STR = Suit.HEARTS_STR
     STRING_SYMBOL = u"♥"
     STRING_SYMBOL_WHITE = u"♡"
 
 
 class Diamond(Suit):
     TYPE = Suit.DIAMONDS
+    TYPE_STR = Suit.DIAMONDS_STR
     STRING_SYMBOL = u"♦"
     STRING_SYMBOL_WHITE = u"♢"
 
 
 class Club(Suit):
     TYPE = Suit.CLUBS
+    TYPE_STR = Suit.CLUBS_STR
     STRING_SYMBOL = u"♣"
     STRING_SYMBOL_WHITE = u"♧"
 
 
 class Spade(Suit):
     TYPE = Suit.SPADES
+    TYPE_STR = Suit.SPADES_STR
     STRING_SYMBOL = u"♠"
     STRING_SYMBOL_WHITE = u"♤"

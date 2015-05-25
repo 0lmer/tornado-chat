@@ -2,6 +2,7 @@
 
 import unittest
 from poker.models.cards import HoldemDeck, Deck, Card, Suit, Heart
+import copy
 
 
 class DeckTest(unittest.TestCase):
@@ -13,6 +14,12 @@ class DeckTest(unittest.TestCase):
 
     def test_pop_card_from_deck(self):
         self.assertRaises(IndexError, self.deck.pop_random_card)
+
+    def test_shuffle(self):
+        deck = Deck(suits=[Suit.from_type(suit_type) for suit_type in Suit.TYPES], rank_range=(2, 15, ))
+        unshuffled_cards = copy.copy(deck._cards)
+        deck.shuffle()
+        self.assertNotEqual(unshuffled_cards, deck._cards)
 
 
 class HoldemDeckTest(unittest.TestCase):
@@ -47,12 +54,17 @@ class CardTest(unittest.TestCase):
 
     def test_card_description(self):
         card = Card.from_denomination(suit=self.suit, denomination=self.QUEEN_STR)
-        self.assertEqual(card.description, u"♥Q")
+        self.assertEqual(card.description, u"Q♥")
 
     def test_card_str(self):
         card = Card.from_denomination(suit=self.suit, denomination=self.QUEEN_STR)
-        self.assertEqual(unicode(card), u"♥Q")
-        self.assertEqual(str(card), "♥Q")
+        self.assertEqual(unicode(card), u"Q♥")
+        self.assertEqual(str(card), "Q♥")
+
+    def test_create_card_from_string(self):
+        card = Card.from_string('Qd')
+        self.assertEqual(unicode(card), u"Q♦")
+        self.assertEqual(str(card), "Q♦")
 
 
 class SuitTest(unittest.TestCase):

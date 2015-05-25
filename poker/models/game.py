@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from poker.models.cards import HoldemDeck
+from poker.models.cards import HoldemDeck, Deck
 import copy
 
 """
@@ -31,13 +31,16 @@ class Hand(object):
 class Gamer(object):
     def __init__(self):
         self.hand = Hand()
-        # self.
+        self._amount = 0
 
     def clean_hand(self):
         self.hand.clean()
 
     def add_card(self, card):
         self.hand.add_card(card=card)
+
+    def has_enough_money(self, amount):
+        return self._amount >= amount
 
 
 class Table(object):
@@ -46,10 +49,46 @@ class Table(object):
         self.active_gamers = []
         self.board = Hand()
         self.max_gamers_count = 9
-        self.deck = HoldemDeck()
+        self.deck = Deck()
         self.pot = 0
         self.buy_in = 0
         self.rake = 0  # Comission
+        self.current_step = 0
+        self.PLAN = {}
+
+    def add_gamer(self, gamer):
+        if len(self.gamers) < self.max_gamers_count:
+            self.gamers.append(gamer)
+        else:
+            raise OverflowError("Table is full")
+
+    def bet(self, gamer, amount):
+        if gamer.has_enough_money(amount=amount):
+            pass
+
+
+    def next_step(self):
+        if self.current_step >= len(self.PLAN.keys()):
+            self.clean()
+        self.current_step += 1
+        self.PLAN.get(self.current_step, (lambda: 1))()
+
+    def clean(self):
+        self.active_gamers = self.gamers[:]
+        self.pot = 0
+        self.deck = HoldemDeck()
+        self.deck.shuffle()
+        self.board.clean()
+        self.current_step = 0
+        for gamer in self.gamers:
+            gamer.hand.clean()
+
+
+class HoldemTable(Table):
+    def __init__(self):
+        super(HoldemTable, self).__init__()
+        self.deck = HoldemDeck()
+        self.deck.shuffle()
         self.PLAN = {
             1: self.preflop,
             2: self.flop,
@@ -57,19 +96,6 @@ class Table(object):
             4: self.river,
             5: self.showdown,
         }
-        self.current_step = 0
-
-    def add_gamer(self, gamer):
-        if len(self.gamers) < self.max_gamers_count:
-            self.gamers.append(gamer)
-        else:
-            raise OverflowError("Room is full")
-
-    def next_step(self):
-        if self.current_step == 5:
-            self.clean()
-        self.current_step += 1
-        self.PLAN.get(self.current_step)()
 
     def preflop(self):
         self.active_gamers = copy.copy(self.gamers)
@@ -89,10 +115,3 @@ class Table(object):
 
     def showdown(self):
         pass
-
-    def clean(self):
-        self.active_gamers = self.gamers[:]
-        self.pot = 0
-        self.deck = HoldemDeck()
-        self.board.clean()
-        self.current_step = 0
