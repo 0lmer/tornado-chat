@@ -82,6 +82,7 @@ class Table(object):
     def clean(self):
         self.active_gamers = self.gamers[:]
         self.pot = 0
+        self.circle_pot = 0
         self.deck = HoldemDeck()
         self.deck.shuffle()
         self.board.clean()
