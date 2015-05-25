@@ -37,8 +37,12 @@ class GamerTest(unittest.TestCase):
         card = Card.from_string('Qd')
         self.gamer.add_card(card)
 
-    def test_take_off_money(self, amount):
-        self._amount -= amount
+    def test_take_off_money(self):
+        self.gamer._amount = 50
+        self.gamer.take_off_money(amount=20)
+        self.assertEqual(self.gamer._amount, 30)
+        self.assertRaises(ValueError, self.gamer.take_off_money, 31)
+
 
 class TableTest(unittest.TestCase):
     def setUp(self):
@@ -136,12 +140,89 @@ class HoldemTableTest(TableTest):
         self.assertEqual(len(dima.hand.cards), 2)
         self.assertEqual(len(self.table.board.cards), 3)
 
+    def test_next_step_with_bets(self):
+        vasya = Gamer()
+        petya = Gamer()
+        dima = Gamer()
+        self.table.add_gamer(vasya)
+        self.table.add_gamer(petya)
+        self.table.add_gamer(dima)
+        dima._amount = 500
+
+        self.assertEqual(dima._amount, 500)
+        self.assertEqual(self.table.pot, 0)
+        self.assertEqual(self.table.circle_pot, 0)
+        self.table.bet(gamer=dima, amount=100)
+        self.assertEqual(dima._amount, 400)
+        self.assertEqual(self.table.pot, 0)
+        self.assertEqual(self.table.circle_pot, 100)
+
+
+        self.table.next_step()  # preflop
+        self.assertEqual(dima._amount, 400)
+        self.assertEqual(self.table.pot, 100)
+        self.assertEqual(self.table.circle_pot, 0)
+        self.table.bet(gamer=dima, amount=50)
+        self.assertEqual(dima._amount, 350)
+        self.assertEqual(self.table.pot, 100)
+        self.assertEqual(self.table.circle_pot, 50)
+
+
+        self.table.next_step()  # flop
+        self.assertEqual(dima._amount, 350)
+        self.assertEqual(self.table.pot, 150)
+        self.assertEqual(self.table.circle_pot, 0)
+        self.table.bet(gamer=dima, amount=50)
+        self.assertEqual(dima._amount, 300)
+        self.assertEqual(self.table.pot, 150)
+        self.assertEqual(self.table.circle_pot, 50)
+
+        self.table.next_step()  # turn
+        self.assertEqual(dima._amount, 300)
+        self.assertEqual(self.table.pot, 200)
+        self.assertEqual(self.table.circle_pot, 0)
+        self.table.bet(gamer=dima, amount=25)
+        self.assertEqual(dima._amount, 275)
+        self.assertEqual(self.table.pot, 200)
+        self.assertEqual(self.table.circle_pot, 25)
+
+        self.table.next_step()  # river
+        self.assertEqual(dima._amount, 275)
+        self.assertEqual(self.table.pot, 225)
+        self.assertEqual(self.table.circle_pot, 0)
+        self.table.bet(gamer=dima, amount=25)
+        self.assertEqual(dima._amount, 250)
+        self.assertEqual(self.table.pot, 225)
+        self.assertEqual(self.table.circle_pot, 25)
+
+        self.table.next_step()  # showdown
+        self.assertEqual(dima._amount, 250)
+        self.assertEqual(self.table.pot, 250)
+        self.assertEqual(self.table.circle_pot, 0)
+        self.table.bet(gamer=dima, amount=150)
+        self.assertEqual(dima._amount, 100)
+        self.assertEqual(self.table.pot, 250)
+        self.assertEqual(self.table.circle_pot, 150)
+
+        self.table.next_step()  # showdown
+        self.assertEqual(dima._amount, 100)
+        self.assertEqual(self.table.pot, 400)
+        self.assertEqual(self.table.circle_pot, 0)
+        self.table.bet(gamer=dima, amount=0)
+        self.assertEqual(dima._amount, 100)
+        self.assertEqual(self.table.pot, 400)
+        self.assertEqual(self.table.circle_pot, 0)
+
+
     def test_bet(self):
         gamer = Gamer()
+        gamer._amount = 300
         amount = 100
         self.assertEqual(self.table.pot, 0)
+        self.assertEqual(self.table.circle_pot, 0)
         self.table.bet(gamer, amount)
-        self.assertEqual(self.table.pot, 100)
+        self.assertEqual(self.table.pot, 0)
+        self.assertEqual(self.table.circle_pot, amount)
 
 
 class EvaluatorTest(unittest.TestCase):
