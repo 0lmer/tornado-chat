@@ -3,9 +3,8 @@
 {% block import_js %}
     {{ super() }}
     <script src="/static/js/chat-angular.js"></script>
-    <script>
-        // @TODO: Remove me after refactoring
-        var globalMessages = {{ messages }};
+    <script type="text/javascript">
+        angular.module('chatApp').value('oldMessages',{{ messages }});
     </script>
 {% endblock %}
 
@@ -13,7 +12,6 @@
 <div ng-cloak ng-app="chatApp">
     <div id="ChatWrap" ng-controller="chatCtrl">
         <input type="hidden" ng-init="setSessionSid('{{ session_sid }}')" />
-        <!--<input type="hidden" ng-init="initMessages({{ messages }})" />-->
         <input type="hidden" ng-init="initMessages()" />
         {% raw %}
         <div class="container-fluid">

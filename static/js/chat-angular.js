@@ -2,7 +2,11 @@
 
 var chatApp = angular.module('chatApp', ['ngRoute', 'ngAnimate']);//angucomplete
 
-chatApp.controller('chatCtrl', function($scope, $http, chatFactory) {
+//chatApp.controller('chatCtrl').$inject = [
+//    '$scope','$http','chatFactory', 'oldMessages'
+//];
+
+chatApp.controller('chatCtrl', function($scope, $http, chatFactory, oldMessages) {
     $scope.connectionStatus = chatFactory.getConnectionStatus();
     $scope.currentMessage = '';
     $scope.messages = [];
@@ -17,7 +21,7 @@ chatApp.controller('chatCtrl', function($scope, $http, chatFactory) {
     };
 
     $scope.initMessages = function() {
-        $scope.messages = globalMessages;
+        $scope.messages = oldMessages;
     };
 
     //$scope.initMessages = function(messages) {

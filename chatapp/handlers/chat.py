@@ -32,3 +32,12 @@ class ChatAPIHandler(TornadoSubscribeHandler):
     CHANNEL = 'messages'
     JOIN_MESSAGE = json.dumps({"text": "Someone joined.", "user": "system"})
     LEAVE_MESSAGE = json.dumps({"text": "Someone left.", "user": "system"})
+
+    @gen.coroutine
+    def on_message(self, message):
+        super(self.__class__, self).on_message(message)
+        if 'user' not in self._message_json.keys():
+            self._message_json['user'] = 'Unknown'
+            message = json.dumps(self._message_json)
+        message_id = yield Message.insert(self._message_json)
+        self.send_message(message)

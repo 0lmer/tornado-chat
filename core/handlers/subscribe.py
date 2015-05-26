@@ -29,8 +29,7 @@ class TornadoSubscribeHandler(SubscribeHandlerBase):
     @gen.coroutine
     def on_message(self, message):
         super(TornadoSubscribeHandler, self).on_message(message)
-        message_id = yield Message.insert(self._message_json)
-        self.send_message(message)
+        # self.send_message(message)
 
     def on_close(self, message=None):
         self.participants.remove(self)
@@ -55,8 +54,7 @@ class RedisSubscribeHandler(SubscribeHandlerBase):
     @gen.coroutine
     def on_message(self, message):
         super(RedisSubscribeHandler, self).on_message(message)
-        message_id = yield Message.insert(self._message_json)
-        self.send_message(message)
+        # self.send_message(message)
 
     def on_close(self, message=None):
         self.subscriber.unsubscribe(self.CHANNEL, self)
@@ -80,8 +78,7 @@ class RabbitMQSubscribeHandler(SubscribeHandlerBase):
     @gen.coroutine
     def on_message(self, message):
         super(RabbitMQSubscribeHandler, self).on_message(message)
-        message_id = yield Message.insert(self._message_json)
-        self.send_message(message)
+        # self.send_message(message)
 
     def on_close(self, message=None):
         if self.LEAVE_MESSAGE:
