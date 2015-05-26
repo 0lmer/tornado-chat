@@ -49,28 +49,33 @@ chatApp.controller('chatCtrl', function($scope, $http, chatFactory, oldMessages)
 chatApp.factory('chatFactory', function() {
     var service = {};
     var ws_url = 'http://' + document.location.host + '/chat/ws';
+    var ws_options = {
+        'protocols_whitelist': ['websocket', 'xdr-streaming', 'xhr-streaming', 'iframe-eventsource',
+        'iframe-htmlfile', 'xdr-polling', 'xhr-polling', 'iframe-xhr-polling', 'jsonp-polling']
+    };
     var ws;
     var session_sid = '';
     var connection = false;
 
-    var wsSend = function(obj) {
-        obj['sid'] = session_sid;
+    var wsSend = function(messageObj) {
+        messageObj['sid'] = session_sid;
 
-        var msg = JSON.stringify(obj);
+        var msg = JSON.stringify(messageObj);
         ws.send(msg);
     };
 
     service.connect = function() {
-        ws = new SockJS(ws_url, null, {
-                'protocols_whitelist': ['websocket', 'xdr-streaming', 'xhr-streaming', 'iframe-eventsource',
-                    'iframe-htmlfile', 'xdr-polling', 'xhr-polling', 'iframe-xhr-polling', 'jsonp-polling']
-        });
+        ws = new SockJS(ws_url, null, ws_options);
         ws.onmessage = function (message) {
         };
 
         ws.onclose = function () {
             console.log('connection closed');
-            this.socket = new WebSocket(ws.url);
+            var onMessageCallback = ws.onmessage;
+            setTimeout(function() {
+                service.connect();
+                service.onmessage(onMessageCallback);
+            }, 2000);
         };
         ws.onopen = function () {
             console.log('connection open');

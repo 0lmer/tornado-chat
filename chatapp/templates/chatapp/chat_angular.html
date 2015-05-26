@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<div ng-cloak ng-app="chatApp">
+<div ng-app="chatApp">
     <div id="ChatWrap" ng-controller="chatCtrl">
         <input type="hidden" ng-init="setSessionSid('{{ session_sid }}')" />
         <input type="hidden" ng-init="initMessages()" />

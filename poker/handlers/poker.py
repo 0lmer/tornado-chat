@@ -5,6 +5,7 @@ from chatapp.models import Message
 from core.handlers.subscribe import RabbitMQSubscribeHandler, RedisSubscribeHandler, TornadoSubscribeHandler
 from tornado import gen
 import json
+from bson import json_util as bson_util
 
 
 class PokerTablePageHandler(BaseHandler):
@@ -13,7 +14,8 @@ class PokerTablePageHandler(BaseHandler):
     def get(self):
         # db = self.application.db
         messages = yield Message.find()
-        self.render('poker/table.html', messages=messages)
+        messages = bson_util.dumps(messages)
+        self.render('poker/room.html', messages=messages)
 
 
 # class PokerHandler(AuthSockJSHandler, BaseSockJSHandler):

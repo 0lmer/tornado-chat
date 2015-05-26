@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import random
 from random import shuffle
+from core.models import Jsonify
+
 """
     Suits (in playing cards) – Масти (игральные).
     Deck – колода
@@ -44,7 +46,7 @@ class HoldemDeck(Deck):
         super(HoldemDeck, self).__init__(suits=suits, rank_range=(2, 15, ))
 
 
-class Card(object):
+class Card(Jsonify):
     DENOMINATION_TO_RATE = {
             '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
             'J': 11, 'Q': 12, 'K': 13, 'A': 14
@@ -57,7 +59,7 @@ class Card(object):
         self.rank = None  # 2-14
 
     @classmethod
-    def from_string(cls, card_str):
+    def from_code(cls, card_str):
         """ Example: Qd
         """
         denomination = card_str[:-1]
@@ -83,6 +85,19 @@ class Card(object):
     def description(self):
         return unicode(self)
 
+    @property
+    def code(self):
+        return u'%s%s' % (self.denomination, self.suit.TYPE_STR)
+
+    def to_json(self):
+        return {
+            'description': self.description,
+            'denomination': self.denomination,
+            'rank': self.rank,
+            'code': self.code,
+            'suit': self.suit.to_json()
+        }
+
     def __str__(self):
         return "%(denomination)s%(suit)s" % {'suit': self.suit.STRING_SYMBOL.encode("utf-8"),
                                              'denomination': self.denomination}
@@ -91,7 +106,12 @@ class Card(object):
         return u"%(denomination)s%(suit)s" % {'suit': self.suit.STRING_SYMBOL, 'denomination': self.denomination}
 
 
-class Suit(object):
+class Suit(Jsonify):
+    TYPE = None
+    TYPE_STR = None
+    STRING_SYMBOL = None
+    STRING_SYMBOL_WHITE = None
+
     HEARTS = 1
     HEARTS_STR = u"h"
 
@@ -142,6 +162,14 @@ class Suit(object):
             cls.CLUBS_STR: Club,
             cls.SPADES_STR: Spade,
         }.get(suit_type_string)()
+
+    def to_json(self):
+        return {
+            'type': self.TYPE,
+            'type_str': self.TYPE_STR,
+            'user_str': self.STRING_SYMBOL,
+            'user_str_white': self.STRING_SYMBOL_WHITE
+        }
 
 
 class Heart(Suit):

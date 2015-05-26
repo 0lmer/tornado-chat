@@ -29,5 +29,10 @@ class MongoModel(object):
         return getattr(cls.db, cls.collection_name or '%ss' % cls.__name__.lower())
 
 
+class Jsonify(object):
+    def to_json(self):
+        raise NotImplementedError
+
+
 class User(MongoModel):
     pass

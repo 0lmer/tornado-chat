@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from core.models import Jsonify
 from poker.models.cards import HoldemDeck, Deck
 import copy
 
@@ -8,7 +9,8 @@ import copy
     http://www.uapoker.info/glossary-poker-1.html
 """
 
-class Hand(object):
+
+class Hand(Jsonify):
     def __init__(self):
         self.cards = []
 
@@ -17,6 +19,11 @@ class Hand(object):
 
     def clean(self):
         del self.cards[:]
+
+    def to_json(self):
+        return {
+            'cards': [card.to_json() for card in self.cards]
+        }
 
     def __str__(self):
         return "%s" % [str(card) for card in self.cards]
@@ -28,9 +35,10 @@ class Hand(object):
         return self.__unicode__()
 
 
-class Gamer(object):
+class Gamer(Jsonify):
     def __init__(self):
         self.hand = Hand()
+        self.name = u''
         self._amount = 0
 
     def clean_hand(self):
@@ -47,8 +55,18 @@ class Gamer(object):
     def has_enough_money(self, amount):
         return self._amount >= amount
 
+    @property
+    def amount(self):
+        return self._amount
 
-class Table(object):
+    def to_json(self):
+        return {
+            'amount': self.amount,
+            'hand': self.hand.to_json(),
+            'name': self.name
+        }
+
+class Table(Jsonify):
     def __init__(self):
         self.gamers = []
         self.active_gamers = []
@@ -93,6 +111,16 @@ class Table(object):
     def _merge_cirlce_pot(self):
         self.pot += self.circle_pot
         self.circle_pot = 0
+
+    def to_json(self):
+        return {
+            'gamers': self.gamers,
+            'active_gamers': self.active_gamers,
+            'pot': self.pot,
+            'circle_pot': self.circle_pot,
+            'board': self.board,
+            'current_step': self.current_step
+        }
 
 
 class HoldemTable(Table):

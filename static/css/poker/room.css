@@ -1,0 +1,15 @@
+.center-text{
+    text-align: center;
+}
+
+.left-text{
+    text-align: left;
+}
+
+.right-text{
+    text-align: right;
+}
+
+.table-gamer-row {
+    margin: 25px 0;
+}

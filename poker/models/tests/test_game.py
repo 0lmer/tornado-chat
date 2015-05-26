@@ -23,6 +23,13 @@ class HandTest(unittest.TestCase):
         self.hand.clean()
         self.assertEqual(len(self.hand.cards), 0)
 
+    def test_to_json(self):
+        self.assertEqual(self.hand.to_json().keys().sort(), ['cards'].sort())
+        self.assertIsInstance(self.hand.to_json()['cards'], list)
+        for card in self.cards:
+            self.hand.add_card(card=card)
+        self.assertIs(len(self.hand.to_json()['cards']), 3)
+
 
 class GamerTest(unittest.TestCase):
     def setUp(self):
@@ -34,7 +41,7 @@ class GamerTest(unittest.TestCase):
 
     def test_add_card(self):
         self.assertEqual(len(self.gamer.hand.cards), 0)
-        card = Card.from_string('Qd')
+        card = Card.from_code('Qd')
         self.gamer.add_card(card)
 
     def test_take_off_money(self):
@@ -42,6 +49,14 @@ class GamerTest(unittest.TestCase):
         self.gamer.take_off_money(amount=20)
         self.assertEqual(self.gamer._amount, 30)
         self.assertRaises(ValueError, self.gamer.take_off_money, 31)
+
+    def test_to_json(self):
+        self.assertEqual(self.gamer.to_json().keys().sort(), ['hand', 'amount'].sort())
+        self.gamer._amount = 30
+        self.gamer.name = u"John"
+        self.assertEqual(self.gamer.to_json()['amount'], 30)
+        self.assertIsInstance(self.gamer.to_json()['hand'], dict)
+        self.assertEqual(self.gamer.to_json()['name'], u"John")
 
 
 class TableTest(unittest.TestCase):
@@ -60,6 +75,15 @@ class TableTest(unittest.TestCase):
         self.assertEqual(self.table.current_step, 1)
         self.table.next_step()
         self.assertEqual(self.table.current_step, 1)
+
+    def test_to_json(self):
+        self.assertIsInstance(self.table.to_json(), dict)
+        self.assertIsInstance(self.table.to_json()['gamers'], list)
+        self.assertIsInstance(self.table.to_json()['active_gamers'], list)
+        self.assertEqual(self.table.to_json()['pot'], 0)
+        self.assertEqual(self.table.to_json()['circle_pot'], 0)
+        self.assertEqual(self.table.to_json().keys().sort(), ['cards'].sort())
+        self.assertEqual(self.table.to_json()['current_step'], 0)
 
 
 class HoldemTableTest(TableTest):

@@ -61,10 +61,23 @@ class CardTest(unittest.TestCase):
         self.assertEqual(unicode(card), u"Q♥")
         self.assertEqual(str(card), "Q♥")
 
-    def test_create_card_from_string(self):
-        card = Card.from_string('Qd')
+    def test_code(self):
+        card = Card.from_denomination(suit=self.suit, denomination=self.QUEEN_STR)
+        self.assertEqual(card.code, u'Qh')
+
+    def test_create_card_from_code(self):
+        card = Card.from_code('Qd')
         self.assertEqual(unicode(card), u"Q♦")
         self.assertEqual(str(card), "Q♦")
+
+    def test_to_json(self):
+        card = Card.from_denomination(suit=Suit.get_diamonds(), denomination=self.QUEEN_STR)
+        self.assertIsInstance(card.to_json(), dict)
+        self.assertEqual(card.to_json()['description'], u'Q♦')
+        self.assertEqual(card.to_json()['denomination'], u'Q')
+        self.assertEqual(card.to_json()['rank'], self.QUEEN_RATE)
+        self.assertEqual(card.to_json()['code'], u'Qd')
+        self.assertIsInstance(card.to_json()['suit'], dict)
 
 
 class SuitTest(unittest.TestCase):
@@ -74,3 +87,11 @@ class SuitTest(unittest.TestCase):
 
     def test_suit_types_length(self):
         self.assertEqual(len(Suit.TYPES), 4)
+
+    def test_to_json(self):
+        suit = Suit.get_hearts()
+        self.assertIsInstance(suit.to_json(), dict)
+        self.assertEqual(suit.to_json()['type'], 1)
+        self.assertEqual(suit.to_json()['type_str'], u'h')
+        self.assertEqual(suit.to_json()['user_str'], u"♥")
+        self.assertEqual(suit.to_json()['user_str_white'], u"♡")
