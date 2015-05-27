@@ -21,24 +21,37 @@ pokerApp.controller('roomCtrl', function($scope, $http, socketFactory) {
                 case 'bets':
                     break;
                 case 'gamers':
+                    switch(data.action) {
+                        case 'join':
+                            $scope.wsController.joinTable(data.gamer);
+                            break;
+                        case 'leave':
+                            $scope.wsController.leaveTable(data.gamer);
+                            break;
+                    }
                     break;
             }
         });
 
-        $scope.users = [
-            {
-                'name': 'Vanya',
-                'hand': []
+        $scope.wsController = {
+            joinTable: function(gamer) {
+                $scope.$apply(function() {
+                    $scope.gamers.push(gamer);
+                    console.log('Gamer ' + gamer.name + ' joined.');
+                });
             },
-            {
-                'name': 'Dima',
-                'hand': []
-            },
-            {
-                'name': 'Roma',
-                'hand': []
+            leaveTable: function(gamer) {
+                $scope.$apply(function() {
+                    for (var idx in $scope.gamers) {
+                        if ($scope.gamers[idx].name === gamer.name) {
+                            $scope.gamers.splice(idx, 1);
+                            console.log('Gamer ' + gamer.name + ' left.');
+                            break;
+                        }
+                    }
+                });
             }
-        ];
+        }
     };
 
     $scope.init();

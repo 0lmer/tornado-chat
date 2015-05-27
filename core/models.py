@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from core.connection.mongo import mongo_client
 from tornado import gen
+from bson.objectid import ObjectId
 
 
 class MongoModel(object):
@@ -9,19 +10,20 @@ class MongoModel(object):
 
     @classmethod
     @gen.coroutine
-    def insert(cls, message_dict=None):
-        if message_dict is None:
-            message_dict = {}
-        response, error = yield gen.Task(cls._collection().insert, message_dict)
+    def insert(cls, input_dict=None):
+        if input_dict is None:
+            input_dict = {}
+        response, error = yield gen.Task(cls._collection().insert, input_dict)
         object_id = response[0][0].get('connectionId')
         raise gen.Return(object_id)
 
     @classmethod
     @gen.coroutine
-    def find(cls, query_dict=None):
-        if query_dict is None:
-            query_dict = {}
-        response, error = yield gen.Task(cls._collection().find, query_dict)
+    def find(cls, **kwargs):
+        if '_id' in kwargs.keys() and isinstance(kwargs['_id'], str):
+            kwargs['_id'] = ObjectId(kwargs['_id'])
+
+        response, error = yield gen.Task(cls._collection().find, kwargs)
         raise gen.Return(response[0])
 
     @classmethod

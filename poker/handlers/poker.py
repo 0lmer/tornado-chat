@@ -19,7 +19,10 @@ class PokerTablePageHandler(BaseHandler):
 
 
 # class PokerHandler(AuthSockJSHandler, BaseSockJSHandler):
-# class PokerHandler(TornadoSubscribeHandler):
-#     CHANNEL = 'messages'
-#     JOIN_MESSAGE = json.dumps({"text": "Someone joined.", "user": "system"})
-#     LEAVE_MESSAGE = json.dumps({"text": "Someone left.", "user": "system"})
+class PokerHandler(TornadoSubscribeHandler):
+    CHANNEL = 'messages'
+    # JOIN_MESSAGE = json.dumps({"text": "Someone joined.", "user": "system"})
+    # LEAVE_MESSAGE = json.dumps({"text": "Someone left.", "user": "system"})
+
+    def join_table(self):
+        pass

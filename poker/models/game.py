@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from core.models import Jsonify
+from core.models import Jsonify, MongoModel
 from poker.models.cards import HoldemDeck, Deck
 import copy
 
@@ -66,7 +66,7 @@ class Gamer(Jsonify):
             'name': self.name
         }
 
-class Table(Jsonify):
+class Table(MongoModel, Jsonify):
     def __init__(self):
         self.gamers = []
         self.active_gamers = []
