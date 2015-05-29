@@ -19,7 +19,7 @@ from core.models import Jsonify
 """
 
 
-class Deck(object):
+class Deck(Jsonify):
     def __init__(self, suits=None, rank_range=None):
         self._cards = []
         suits = [] if suits is None else suits

@@ -99,24 +99,36 @@ pokerApp.factory('socketFactory', function() {
         ws.close();
     };
 
-    service.sendMessage = function(chatRoom, message) {
-        wsSend({type:'message', room: chatRoom, text: message});
+    service.raise = function(amount) {
+        wsSend({type:'raise', amount: amount});
     };
 
-    service.joinToChat = function(chatRoom) {
-        wsSend({type: 'join', 'room': chatRoom});
+    service.call = function() {
+        wsSend({type: 'call'});
     };
 
-    service.leaveChat = function(chatRoom) {
-        wsSend({type: 'leave', room: chatRoom});
+    service.check = function() {
+        wsSend({type: 'check'});
     };
+
+    service.fold = function() {
+        wsSend({type: 'fold'});
+    };
+
+    //service.sendMessage = function(chatRoom, message) {
+    //    wsSend({type:'message', room: chatRoom, text: message});
+    //};
+    //
+    //service.joinToChat = function(chatRoom) {
+    //    wsSend({type: 'join', 'room': chatRoom});
+    //};
+    //
+    //service.leaveChat = function(chatRoom) {
+    //    wsSend({type: 'leave', room: chatRoom});
+    //};
 
     service.getMessages = function() {
         return messages;
-    };
-
-    service.getConnectionStatus = function() {
-        return connection;
     };
 
     service.setSessionSid = function(sid) {

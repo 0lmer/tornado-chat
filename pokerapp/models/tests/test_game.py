@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from poker.models.cards import HoldemDeck, Deck, Card, Suit, Heart
-from poker.models.game import Hand, Gamer, Table, HoldemTable
+from pokerapp.models.cards import HoldemDeck, Deck, Card, Suit, Heart
+from pokerapp.models.game import Hand, Gamer, Table, HoldemTable
 
 
 class HandTest(unittest.TestCase):

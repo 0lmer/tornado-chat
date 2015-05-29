@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from poker.models.cards import HoldemDeck, Deck, Card, Suit, Heart
+from pokerapp.models.cards import HoldemDeck, Deck, Card, Suit, Heart
 import copy
 
 

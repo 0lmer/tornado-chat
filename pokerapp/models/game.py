@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from core.models import Jsonify, MongoModel
-from poker.models.cards import HoldemDeck, Deck
+from pokerapp.models.cards import HoldemDeck, Deck
 import copy
 
 """
@@ -67,7 +67,10 @@ class Gamer(Jsonify):
         }
 
 class Table(MongoModel, Jsonify):
+    collection_name = 'tables'
+
     def __init__(self):
+        self.PLAN = {}
         self.gamers = []
         self.active_gamers = []
         self.board = Hand()
@@ -78,7 +81,12 @@ class Table(MongoModel, Jsonify):
         self.buy_in = 0
         self.rake = 0  # Comission
         self.current_step = 0
-        self.PLAN = {}
+        self.current_gamer = None
+
+    @property
+    def bson_properties(self):
+        return ['gamers', 'active_gamers', 'board', 'max_gamers_count', 'deck', 'pot', 'circle_pot', 'buy_in', 'rake',
+                'current_step', 'current_gamer']
 
     def add_gamer(self, gamer):
         if len(self.gamers) < self.max_gamers_count:
@@ -89,7 +97,6 @@ class Table(MongoModel, Jsonify):
     def bet(self, gamer, amount):
         gamer.take_off_money(amount=amount)
         self.circle_pot += amount
-
 
     def next_step(self):
         if self.current_step >= len(self.PLAN.keys()):

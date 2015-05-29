@@ -12,7 +12,6 @@ class PokerTablePageHandler(BaseHandler):
 
     @gen.coroutine
     def get(self):
-        # db = self.application.db
         messages = yield Message.find()
         messages = bson_util.dumps(messages)
         self.render('poker/room.html', messages=messages)

@@ -25,7 +25,7 @@ settings["xsrf_cookies"] = False
 settings["apps"] = [
     'core',
     'chatapp',
-    'poker',
+    'pokerapp',
 ]
 
 settings["mongo_db_name"] = settings["project_name"]
