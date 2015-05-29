@@ -125,7 +125,7 @@ class Table(MongoModel, Jsonify):
             'active_gamers': self.active_gamers,
             'pot': self.pot,
             'circle_pot': self.circle_pot,
-            'board': self.board,
+            'board': self.board.to_json(),
             'current_step': self.current_step
         }
 

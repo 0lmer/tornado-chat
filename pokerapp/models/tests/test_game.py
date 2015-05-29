@@ -24,7 +24,7 @@ class HandTest(unittest.TestCase):
         self.assertEqual(len(self.hand.cards), 0)
 
     def test_to_json(self):
-        self.assertEqual(self.hand.to_json().keys().sort(), ['cards'].sort())
+        self.assertEqual(sorted(self.hand.to_json().keys()), sorted(['cards']))
         self.assertIsInstance(self.hand.to_json()['cards'], list)
         for card in self.cards:
             self.hand.add_card(card=card)
@@ -51,7 +51,7 @@ class GamerTest(unittest.TestCase):
         self.assertRaises(ValueError, self.gamer.take_off_money, 31)
 
     def test_to_json(self):
-        self.assertEqual(self.gamer.to_json().keys().sort(), ['hand', 'amount'].sort())
+        self.assertEqual(sorted(self.gamer.to_json().keys()), sorted(['hand', 'amount', 'name']))
         self.gamer._amount = 30
         self.gamer.name = u"John"
         self.assertEqual(self.gamer.to_json()['amount'], 30)
@@ -78,12 +78,14 @@ class TableTest(unittest.TestCase):
 
     def test_to_json(self):
         self.assertIsInstance(self.table.to_json(), dict)
+        self.assertEqual(sorted(self.table.to_json().keys()), sorted(['active_gamers', 'board', 'circle_pot',
+                                                                      'current_step', 'gamers', 'pot']))
         self.assertIsInstance(self.table.to_json()['gamers'], list)
         self.assertIsInstance(self.table.to_json()['active_gamers'], list)
         self.assertEqual(self.table.to_json()['pot'], 0)
         self.assertEqual(self.table.to_json()['circle_pot'], 0)
-        self.assertEqual(self.table.to_json().keys().sort(), ['cards'].sort())
         self.assertEqual(self.table.to_json()['current_step'], 0)
+        self.assertIsInstance(self.table.to_json()['board'], dict)
 
 
 class HoldemTableTest(TableTest):

@@ -5,5 +5,5 @@ from pokerapp.handlers import poker
 import sockjs.tornado
 
 url_patterns = [
-    (r"/poker/table", poker.PokerTablePageHandler),
+    (r"/poker/table/([a-zA-Z0-9]+)", poker.PokerTablePageHandler),
 ]
