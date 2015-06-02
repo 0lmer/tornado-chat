@@ -5,6 +5,8 @@ from bson.objectid import ObjectId
 import bson
 import datetime
 import cPickle as pickle
+import hashlib
+from settings import settings
 
 
 class Jsonify(object):
@@ -19,7 +21,31 @@ class Jsonify(object):
         raise NotImplementedError
 
     @property
+    def bson_properties(self):
+        """ List of object properties for saving to mongo
+        :return: List of strings
+        """
+        return []
+
+    @classmethod
+    def unserialize(cls, struct):
+        clz = pickle.loads(str(struct['_class']))
+        instance = clz()
+        for key, value in struct.iteritems():
+            if key == '_class':
+                continue
+
+            if isinstance(value, dict) and '_class' in value.keys():
+                setattr(instance, key, pickle.loads(str(value['_class'])).unserialize(value))
+            else:
+                setattr(instance, key, value)
+        return instance
+
+    @property
     def bson(self):
+        """ Using for Mongo serialization
+        :return: Dict with bson data
+        """
         resp = {}
         for key in self.bson_properties:
             if hasattr(self, key):
@@ -39,24 +65,6 @@ class Jsonify(object):
             resp['_class'] = pickle.dumps(self.__class__)
         return resp
 
-    @property
-    def bson_properties(self):
-        return []
-
-    @classmethod
-    def unserialize(cls, struct):
-        clz = pickle.loads(str(struct['_class']))
-        instance = clz()
-        for key, value in struct.iteritems():
-            if key == '_class':
-                continue
-
-            if isinstance(value, dict) and '_class' in value.keys():
-                setattr(instance, key, pickle.loads(str(value['_class'])).unserialize(value))
-            else:
-                setattr(instance, key, value)
-        return instance
-
 
 class MongoModel(Jsonify, object):
     db = mongo_client
@@ -75,6 +83,12 @@ class MongoModel(Jsonify, object):
     @classmethod
     @gen.coroutine
     def find(cls, **kwargs):
+        resp = yield cls.find_raw(**kwargs)
+        raise gen.Return([cls.unserialize(struct=model_raw) for model_raw in resp])
+
+    @classmethod
+    @gen.coroutine
+    def find_raw(cls, **kwargs):
         if '_id' in kwargs.keys() and isinstance(kwargs['_id'], str):
             kwargs['_id'] = ObjectId(kwargs['_id'])
 
@@ -101,10 +115,43 @@ class MongoModel(Jsonify, object):
             resp = yield self.__class__.mongo_update(query={'_id': self._id}, update=self.bson)
             print "Updated! %s" % resp
 
+    @gen.coroutine
+    def delete(self):
+        response, error = yield gen.Task(self.__class__._collection().remove, {'_id': ObjectId(self._id)})
+        print("Deleted! %s" % self._id)
+        print("Response %s. Error: %s" % (response, error, ))
+
     @classmethod
     def _collection(cls):
         return getattr(cls.db, cls.collection_name or '%ss' % cls.__name__.lower())
 
 
 class User(MongoModel):
-    pass
+    def __init__(self, login=''):
+        self.login = login
+        self.password = None
+        self.name = self.login
+        self.age = 0
+        self.created = datetime.datetime.now()
+        self.updated = datetime.datetime.now()
+        self.last_visited = datetime.datetime.now()
+
+    @classmethod
+    @gen.coroutine
+    def get_by_login_password(cls, login, password):
+        password = hashlib.md5(''.join([settings["cookie_secret"], password, settings["cookie_secret"]])).hexdigest()
+        users = yield cls.find(login=login, password=unicode(password))
+        try:
+            user = users[0]
+        except IndexError, ex:
+            raise ValueError("User not found")
+        raise gen.Return(user)
+
+    def set_password(self, new_password):
+        password = hashlib.md5(''.join([settings["cookie_secret"], new_password, settings["cookie_secret"]]))\
+                   .hexdigest()
+        self.password = password
+
+    @property
+    def bson_properties(self):
+        return ['login', 'name', 'password', 'age', 'created', 'updated', 'last_visited']

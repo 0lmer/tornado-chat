@@ -3,6 +3,7 @@ import json
 
 from core.session import Session
 import tornado.web
+import tornado.gen
 import sockjs.tornado
 import os
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
@@ -14,10 +15,30 @@ class ProjectSessionHandler(object):
 
     @property
     def project_session(self):
-        if self._sid:
-            return Session(self.application.session_store, self._sid)
+        if self.get_user_from_cookies():
+            return Session(self.application.session_store, unicode(self._sid))
         else:
             return None
+
+    def get_user_from_cookies(self):
+        raise NotImplementedError
+
+    @property
+    def _sid(self):
+        return 'session:%s' % self.get_user_from_cookies()
+
+    @property
+    def current_user(self):
+        try:
+            user = self.project_session['current_user']
+            return user
+        except (TypeError, KeyError, ), ex:
+            return None
+
+
+class AuthorizedHandler(ProjectSessionHandler, tornado.web.RequestHandler):
+    def get_user_from_cookies(self):
+        return self.get_secure_cookie("user")
 
 
 class JinjaTemplateRendering:
@@ -37,7 +58,7 @@ class JinjaTemplateRendering:
         return content
 
 
-class BaseHandler(JinjaTemplateRendering, ProjectSessionHandler, tornado.web.RequestHandler):
+class BaseHandler(JinjaTemplateRendering, AuthorizedHandler, tornado.web.RequestHandler):
 
     # def render(self, template_name, **kwargs):
     #     """
@@ -75,6 +96,7 @@ class BaseSockJSHandler(sockjs.tornado.SockJSConnection, ProjectSessionHandler):
     def __init__(self, session):
         super(BaseSockJSHandler, self).__init__(session)
         self._message_json = None
+        self._user_login = None
 
     def on_open(self, request):
         super(BaseSockJSHandler, self).on_open(request)

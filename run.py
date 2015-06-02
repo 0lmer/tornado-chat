@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from core.connection.mongo import mongo_client
-from core.connection.redis import redis_client
+from core.connection.redisconn import redis_client, redis_client_sync
 from core.session import RedisSessionStore
 from core.handlers.base import BaseSockJSHandler
 
@@ -19,7 +19,7 @@ from urls import url_patterns
 class TornadoApplication(tornado.web.Application):
     def __init__(self):
         tornado.web.Application.__init__(self, url_patterns, **settings)
-        self.session_store = RedisSessionStore(self.redis_client)
+        self.session_store = RedisSessionStore(self.redis_client_sync)
 
     @property
     def db(self):
@@ -32,6 +32,12 @@ class TornadoApplication(tornado.web.Application):
         if not hasattr(self, '_redis_client'):
             self._redis_client = redis_client
             self._redis_client.connect()
+        return self._redis_client
+
+    @property
+    def redis_client_sync(self):
+        if not hasattr(self, '_redis_client'):
+            self._redis_client = redis_client_sync
         return self._redis_client
 
 def main():

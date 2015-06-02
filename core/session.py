@@ -19,7 +19,7 @@ class RedisSessionStore:
  
     def generate_sid(self, ):
         return uuid4().get_hex()
- 
+
     def get_session(self, sid, name):
         data = self.redis.hget(self.prefixed(sid), name)
         session = pickle.loads(data) if data else dict()
@@ -33,9 +33,9 @@ class RedisSessionStore:
  
     def delete_session(self, sid):
         self.redis.delete(self.prefixed(sid))
- 
- 
-class Session:
+
+
+class Session(object):
  
     def __init__(self, session_store, sessionid=None):
         self._store = session_store

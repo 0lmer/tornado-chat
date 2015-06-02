@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 from core.connection.rabbitmq import PikaClient
-from core.connection.redis import redis_client
+from core.connection.redisconn import redis_client
 from core.handlers.base import BaseSockJSHandler
 from chatapp.models import Message
 from tornado import gen

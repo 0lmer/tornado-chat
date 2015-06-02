@@ -13,7 +13,7 @@ class ChatPageHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         # db = self.application.db
-        messages = yield Message.find()
+        messages = yield Message.find_raw()
         self.render('chatapp/chat.html', messages=messages)
 
 
@@ -22,7 +22,7 @@ class ChatAngularPageHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         # db = self.application.db
-        messages = yield Message.find()
+        messages = yield Message.find_raw()
         json_messages = bson_dumps(messages)
         self.render('chatapp/chat_angular.html', messages=json_messages)
 
