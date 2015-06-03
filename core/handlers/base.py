@@ -106,4 +106,4 @@ class BaseSockJSHandler(sockjs.tornado.SockJSConnection, ProjectSessionHandler):
             self._message_json = json.loads(message)
         except ValueError, ex:
             pass
-        print(message)
+        print('Recieve: %s' % message)

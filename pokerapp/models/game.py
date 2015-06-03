@@ -67,9 +67,9 @@ class Gamer(Jsonify):
         }
 
 class Table(MongoModel, Jsonify):
-    collection_name = 'tables'
 
     def __init__(self):
+        super(Table, self).__init__()
         self.PLAN = {}
         self.gamers = []
         self.active_gamers = []
@@ -82,11 +82,12 @@ class Table(MongoModel, Jsonify):
         self.rake = 0  # Comission
         self.current_step = 0
         self.current_gamer = None
+        self.name = None
 
     @property
     def bson_properties(self):
         return ['gamers', 'active_gamers', 'board', 'max_gamers_count', 'deck', 'pot', 'circle_pot', 'buy_in', 'rake',
-                'current_step', 'current_gamer']
+                'current_step', 'current_gamer', 'name']
 
     def add_gamer(self, gamer):
         if len(self.gamers) < self.max_gamers_count:
@@ -126,7 +127,8 @@ class Table(MongoModel, Jsonify):
             'pot': self.pot,
             'circle_pot': self.circle_pot,
             'board': self.board.to_json(),
-            'current_step': self.current_step
+            'current_step': self.current_step,
+            '_id': str(self._id)
         }
 
 

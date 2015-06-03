@@ -1,0 +1,97 @@
+{% extends "core/base.html" %}
+
+{% block import_js %}
+    {{ super() }}
+    <script src="/static/js/table.js"></script>
+    <script type="text/javascript">
+        angular.module('pokerApp').constant('table', {{ table }});
+    </script>
+{% endblock %}
+
+{% block import_css %}
+    <link rel="stylesheet" href="/static/css/poker/room.css">
+{% endblock %}
+
+{% block content %}
+<div ng-app="pokerApp">
+    <div ng-controller="roomCtrl">
+        {% raw %}
+        <div class="container-fluid">
+            <div class="row">
+                <input class="btn btn-success" type="button" value="Join!" ng-click="join()"/>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 well">
+                    <div class="row table-gamer-row">
+                        <div class="col-xs-2 center-text"></div>
+                        <div class="col-xs-4 center-text">
+                            Player5 - {{ gamers[4].name }}
+                        </div>
+                        <div class="col-xs-4 center-text">
+                            Player6 - {{ gamers[5].name }}
+                        </div>
+                        <div class="col-xs-2 center-text"></div>
+                    </div>
+
+                    <div class="row table-gamer-row">
+                        <div class="col-xs-4 center-text">
+                            Player4 - {{ gamers[3].name }}
+                        </div>
+                        <div class="col-xs-4">
+                        </div>
+                        <div class="col-xs-4 center-text">
+                            Player7 - {{ gamers[6].name }}
+                        </div>
+                    </div>
+
+                    <div class="row table-gamer-row">
+                        <div class="col-xs-4 center-text">
+                            Player3 - {{ gamers[2].name }}
+                        </div>
+                        <div class="col-xs-4"></div>
+                        <div class="col-xs-4 center-text">
+                            Player8 - {{ gamers[7].name }}
+                        </div>
+                    </div>
+
+                    <div class="row table-gamer-row">
+                        <div class="col-xs-1"></div>
+                        <div class="col-xs-3 center-text">
+                            Player2 - {{ gamers[1].name }}
+                        </div>
+                        <div class="col-xs-4 center-text">
+                            Player1 - {{ gamers[0].name }}
+                        </div>
+                        <div class="col-xs-3 center-text">
+                            Player9 - {{ gamers[8].name }}
+                        </div>
+                        <div class="col-xs-1"></div>
+                    </div>
+
+                    <!--<div class="chat-window">-->
+                        <!--<div id="chat-text" scroll-glue>-->
+                            <!--<div class="panel panel-default" ng-repeat="message in messages">-->
+                                <!--<div class="panel-heading"><b>{{ message.user }}:</b> {{ message.created_at | date }}</div>-->
+                                <!--<div class="panel-body" ng-bind-html="message.text | imagepreview | urlify | unsafe"></div>-->
+                            <!--</div>-->
+                        <!--</div>-->
+
+                        <!--<form id="input-form" class="form-inline">-->
+                            <!--<div class="form-group" style="width:100%;">-->
+                                <!--<div class="input-group" style="width:100%;">-->
+                                    <!--<input id="input-text" type="text" class="form-control" placeholder="Enter chat text here!"-->
+                                           <!--autofocus ng-model="currentMessage"/>-->
+                                    <!--<span class="input-group-btn">-->
+                                        <!--<button class="btn btn-primary" type="submit" ng-click="sendMessage(currentMessage)">Send</button>-->
+                                    <!--</span>-->
+                                <!--</div>-->
+                            <!--</div>-->
+                        <!--</form>-->
+                    <!--</div> &lt;!&ndash; .chat-window &ndash;&gt;-->
+                </div>
+            </div>
+        </div>
+        {% endraw %}
+    </div>
+</div>
+{% endblock %}

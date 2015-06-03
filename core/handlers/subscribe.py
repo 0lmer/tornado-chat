@@ -37,6 +37,7 @@ class TornadoSubscribeHandler(SubscribeHandlerBase):
             self.send_message(self.LEAVE_MESSAGE)
 
     def send_message(self, message):
+        print('Send: %s' % message)
         self.broadcast(self.participants, message)
 
 
@@ -62,6 +63,7 @@ class RedisSubscribeHandler(SubscribeHandlerBase):
             self.send_message(self.LEAVE_MESSAGE)
 
     def send_message(self, message):
+        print('Send: %s' % message)
         self.publisher.publish(self.CHANNEL, message)
 
 
@@ -86,6 +88,7 @@ class RabbitMQSubscribeHandler(SubscribeHandlerBase):
         self.pika_client.connection.close()
 
     def send_message(self, message):
+        print('Send: %s' % message)
         self.pika_client.sample_message(message)
 
     def write_message(self, message):

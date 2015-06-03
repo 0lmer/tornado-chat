@@ -2,31 +2,36 @@
 
 var pokerApp = angular.module('pokerApp', ['ngRoute', 'ngAnimate']);//angucomplete
 
-pokerApp.controller('roomCtrl', function($scope, $http, socketFactory) {
+pokerApp.controller('roomCtrl', function($scope, $http, socketFactory, table) {
+    $scope.table = table;
     $scope.gamers = [];
 
     $scope.setSessionSid = function(sid) {
         socketFactory.setSessionSid(sid);
     };
 
+    $scope.join = function() {
+        socketFactory.join($scope.table._id);
+    };
+
     $scope.init = function() {
         socketFactory.connect();
         socketFactory.onmessage(function(message) {
-            var data = JSON.parse(message.data);
-            switch(data.type) {
+            var messageData = JSON.parse(message.data);
+            switch(messageData.type) {
                 case 'hand_cards':
                     break;
                 case 'board_cards':
                     break;
                 case 'bets':
                     break;
-                case 'gamers':
-                    switch(data.action) {
+                case 'table':
+                    switch(messageData.action) {
                         case 'join':
-                            $scope.wsController.joinTable(data.gamer);
+                            $scope.wsController.joinedTable(messageData.data.gamer);
                             break;
                         case 'leave':
-                            $scope.wsController.leaveTable(data.gamer);
+                            $scope.wsController.leavedTable(messageData.data.gamer);
                             break;
                     }
                     break;
@@ -34,16 +39,16 @@ pokerApp.controller('roomCtrl', function($scope, $http, socketFactory) {
         });
 
         $scope.wsController = {
-            joinTable: function(gamer) {
+            joinedTable: function(gamer) {
                 $scope.$apply(function() {
                     $scope.gamers.push(gamer);
                     console.log('Gamer ' + gamer.name + ' joined.');
                 });
             },
-            leaveTable: function(gamer) {
+            leavedTable: function(gamer) {
                 $scope.$apply(function() {
                     for (var idx in $scope.gamers) {
-                        if ($scope.gamers[idx].name === gamer.name) {
+                        if ($scope.gamers[idx].login === gamer.login) {
                             $scope.gamers.splice(idx, 1);
                             console.log('Gamer ' + gamer.name + ' left.');
                             break;
@@ -60,7 +65,7 @@ pokerApp.controller('roomCtrl', function($scope, $http, socketFactory) {
 
 pokerApp.factory('socketFactory', function() {
     var service = {};
-    var ws_url = 'http://' + document.location.host + '/chat/ws';
+    var ws_url = 'http://' + document.location.host + '/poker/ws';
     var ws_options = {
         'protocols_whitelist': ['websocket', 'xdr-streaming', 'xhr-streaming', 'iframe-eventsource',
         'iframe-htmlfile', 'xdr-polling', 'xhr-polling', 'iframe-xhr-polling', 'jsonp-polling']
@@ -97,6 +102,10 @@ pokerApp.factory('socketFactory', function() {
 
     service.disconnect = function() {
         ws.close();
+    };
+
+    service.join = function (tableId) {
+        wsSend({ type: 'table', action: 'join', data: { table_id: tableId } });
     };
 
     service.raise = function(amount) {

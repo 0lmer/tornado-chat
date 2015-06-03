@@ -70,6 +70,9 @@ class MongoModel(Jsonify, object):
     db = mongo_client
     collection_name = None
 
+    def __init__(self, *args, **kwargs):
+        self._id = None
+
     @classmethod
     @gen.coroutine
     def insert(cls, document=None):
@@ -128,6 +131,7 @@ class MongoModel(Jsonify, object):
 
 class User(MongoModel):
     def __init__(self, login=''):
+        super(User, self).__init__()
         self.login = login
         self.password = None
         self.name = self.login
