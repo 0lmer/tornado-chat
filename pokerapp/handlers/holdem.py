@@ -40,7 +40,8 @@ class PokerHandler(TornadoSubscribeHandler):
         yield super(PokerHandler, self).on_message(message=message)
         type = {
             'table': {
-                'join': self.join_table
+                'join': self.join_table,
+                'leave': self.leave_table
             }
         }.get(self._message_json['type'], {})
         action = type.get(self._message_json['action'], lambda: 1)
@@ -55,9 +56,28 @@ class PokerHandler(TornadoSubscribeHandler):
         gamer = Gamer()
         gamer.name = u'Vasya'
         table.add_gamer(gamer=gamer)
+        yield table.save()
         self.send_message(json.dumps({
             'type': 'table',
             'action': 'join',
+            'data': {
+                'gamer': gamer.to_json()
+            }
+        }))
+
+    @gen.coroutine
+    def leave_table(self):
+        table_id = self._message_json['data']['table_id']
+
+        tables = yield HoldemTable.find(_id=str(table_id))
+        table = tables[0]
+        gamer = Gamer()
+        gamer.name = 'Vasya'
+        table.remove_gamer(gamer=gamer)
+        yield table.save()
+        self.send_message(json.dumps({
+            'type': 'table',
+            'action': 'leave',
             'data': {
                 'gamer': gamer.to_json()
             }

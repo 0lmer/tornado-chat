@@ -35,6 +35,9 @@ class Jsonify(object):
             if key == '_class':
                 continue
 
+            if isinstance(value, list):
+                value = [cls.unserialize(el) for el in value]
+
             if isinstance(value, dict) and '_class' in value.keys():
                 setattr(instance, key, pickle.loads(str(value['_class'])).unserialize(value))
             else:
@@ -54,6 +57,8 @@ class Jsonify(object):
                 for tp in self.BSON_TYPES:
                     if isinstance(val, tp):
                         has_bson_type = True
+                        if isinstance(val, list):
+                            val = [el.bson for el in val]
                         break
                 if has_bson_type:
                     resp[key] = val

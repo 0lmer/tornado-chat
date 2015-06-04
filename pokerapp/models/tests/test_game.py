@@ -70,6 +70,18 @@ class TableTest(unittest.TestCase):
         self.table.add_gamer(Gamer())
         self.assertEqual(len(self.table.gamers), 5)
 
+    def test_add_gamer(self):
+        gamer1 = Gamer()
+        gamer1.name = 'Vasya'
+        gamer2 = Gamer()
+        gamer2.name = 'Petya'
+        self.table.add_gamer(gamer1)
+        self.table.add_gamer(gamer2)
+        self.assertEqual(len(self.table.gamers), 6)
+        self.table.remove_gamer(gamer=gamer1)
+        self.table.remove_gamer(gamer=gamer2)
+        self.assertEqual(len(self.table.gamers), 4)
+
     def test_next_step(self):
         self.table.next_step()
         self.assertEqual(self.table.current_step, 1)
@@ -78,7 +90,7 @@ class TableTest(unittest.TestCase):
 
     def test_to_json(self):
         self.assertIsInstance(self.table.to_json(), dict)
-        self.assertEqual(sorted(self.table.to_json().keys()), sorted(['active_gamers', 'board', 'circle_pot',
+        self.assertEqual(sorted(self.table.to_json().keys()), sorted(['_id', 'active_gamers', 'board', 'circle_pot',
                                                                       'current_step', 'gamers', 'pot']))
         self.assertIsInstance(self.table.to_json()['gamers'], list)
         self.assertIsInstance(self.table.to_json()['active_gamers'], list)

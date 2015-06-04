@@ -4,7 +4,7 @@ var pokerApp = angular.module('pokerApp', ['ngRoute', 'ngAnimate']);//angucomple
 
 pokerApp.controller('roomCtrl', function($scope, $http, socketFactory, table) {
     $scope.table = table;
-    $scope.gamers = [];
+    $scope.gamers = $scope.table.gamers;
 
     $scope.setSessionSid = function(sid) {
         socketFactory.setSessionSid(sid);
@@ -12,6 +12,10 @@ pokerApp.controller('roomCtrl', function($scope, $http, socketFactory, table) {
 
     $scope.join = function() {
         socketFactory.join($scope.table._id);
+    };
+
+    $scope.leave = function() {
+        socketFactory.leave($scope.table._id);
     };
 
     $scope.init = function() {
@@ -106,6 +110,10 @@ pokerApp.factory('socketFactory', function() {
 
     service.join = function (tableId) {
         wsSend({ type: 'table', action: 'join', data: { table_id: tableId } });
+    };
+
+    service.leave = function (tableId) {
+        wsSend({ type: 'table', action: 'leave', data: { table_id: tableId } });
     };
 
     service.raise = function(amount) {

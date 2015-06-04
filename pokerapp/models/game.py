@@ -25,6 +25,10 @@ class Hand(Jsonify):
             'cards': [card.to_json() for card in self.cards]
         }
 
+    @property
+    def bson_properties(self):
+        return ['cards']
+
     def __str__(self):
         return "%s" % [str(card) for card in self.cards]
 
@@ -58,6 +62,10 @@ class Gamer(Jsonify):
     @property
     def amount(self):
         return self._amount
+
+    @property
+    def bson_properties(self):
+        return ['name', '_amount', 'hand']
 
     def to_json(self):
         return {
@@ -95,6 +103,13 @@ class Table(MongoModel, Jsonify):
         else:
             raise OverflowError("Table is full")
 
+    def remove_gamer(self, gamer):
+        for idx, gmr in enumerate(self.gamers):
+            if gmr.name == gamer.name:
+                self.gamers.pop(idx)
+                return
+        raise ValueError("Gamer does not exist")
+
     def bet(self, gamer, amount):
         gamer.take_off_money(amount=amount)
         self.circle_pot += amount
@@ -122,8 +137,8 @@ class Table(MongoModel, Jsonify):
 
     def to_json(self):
         return {
-            'gamers': self.gamers,
-            'active_gamers': self.active_gamers,
+            'gamers': [gamer.to_json() for gamer in self.gamers],
+            'active_gamers': [gamer.to_json() for gamer in self.active_gamers],
             'pot': self.pot,
             'circle_pot': self.circle_pot,
             'board': self.board.to_json(),
