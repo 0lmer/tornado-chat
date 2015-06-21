@@ -68,7 +68,7 @@ class AuthSockJSHandler(BaseSockJSHandler):
         data = self._message_json
 
         # Ignore all packets except of 'auth' if user is not yet authenticated
-        auth_sid = data.get('cookie_user') if data is not None else None
+        auth_sid = data.get('sid') if data is not None else None
         if not self.project_session and not auth_sid:
             response = json.dumps({'user': 'system', 'status': 'error', 'text': 'Session id does not exist!'})
             self.send(response)

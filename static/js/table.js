@@ -2,13 +2,10 @@
 
 var pokerApp = angular.module('pokerApp', ['ngRoute', 'ngAnimate']);//angucomplete
 
-pokerApp.controller('roomCtrl', function($scope, $http, socketFactory, table) {
+pokerApp.controller('roomCtrl', function($scope, $http, socketFactory, table, sid) {
     $scope.table = table;
+    $scope.sid = sid;
     $scope.gamers = $scope.table.gamers;
-
-    $scope.setSessionSid = function(sid) {
-        socketFactory.setSessionSid(sid);
-    };
 
     $scope.join = function() {
         socketFactory.join($scope.table._id);
@@ -20,6 +17,7 @@ pokerApp.controller('roomCtrl', function($scope, $http, socketFactory, table) {
 
     $scope.init = function() {
         socketFactory.connect();
+        socketFactory.setSid(sid);
         socketFactory.onmessage(function(message) {
             var messageData = JSON.parse(message.data);
             switch(messageData.type) {
@@ -52,7 +50,7 @@ pokerApp.controller('roomCtrl', function($scope, $http, socketFactory, table) {
             leavedTable: function(gamer) {
                 $scope.$apply(function() {
                     for (var idx in $scope.gamers) {
-                        if ($scope.gamers[idx].login === gamer.login) {
+                        if ($scope.gamers[idx].id === gamer.id) {
                             $scope.gamers.splice(idx, 1);
                             console.log('Gamer ' + gamer.name + ' left.');
                             break;
@@ -75,14 +73,22 @@ pokerApp.factory('socketFactory', function() {
         'iframe-htmlfile', 'xdr-polling', 'xhr-polling', 'iframe-xhr-polling', 'jsonp-polling']
     };
     var ws;
-    var session_sid = '';
+    var sid = '';
     var connection = false;
+    var isAuth = false;
 
     var wsSend = function(messageObj) {
-        messageObj['sid'] = session_sid;
+        //messageObj['sid'] = sid;
+        var sendMessage = function(msgObj) {
+            var msg = JSON.stringify(msgObj);
+            ws.send(msg);
+        };
 
-        var msg = JSON.stringify(messageObj);
-        ws.send(msg);
+        if (!isAuth) {
+            sendMessage({"sid": sid});
+            isAuth = true;
+        }
+        sendMessage(messageObj);
     };
 
     service.connect = function() {
@@ -91,6 +97,7 @@ pokerApp.factory('socketFactory', function() {
         };
 
         ws.onclose = function () {
+            isAuth = false;
             console.log('connection closed');
             var onMessageCallback = ws.onmessage;
             setTimeout(function() {
@@ -148,8 +155,8 @@ pokerApp.factory('socketFactory', function() {
         return messages;
     };
 
-    service.setSessionSid = function(sid) {
-        session_sid = sid;
+    service.setSid = function(inputSid) {
+        sid = inputSid;
     };
 
     service.onmessage = function(callback) {

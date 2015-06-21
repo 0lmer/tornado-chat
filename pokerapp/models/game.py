@@ -44,6 +44,18 @@ class Gamer(Jsonify):
         self.hand = Hand()
         self.name = u''
         self._amount = 0
+        self.user = None
+
+    @classmethod
+    def from_user(cls, user):
+        instance = cls()
+        instance.user = user
+        instance.name = user.name
+        return instance
+
+    @property
+    def id(self):
+        return self.user.id if self.user else None
 
     def clean_hand(self):
         self.hand.clean()
@@ -65,13 +77,14 @@ class Gamer(Jsonify):
 
     @property
     def bson_properties(self):
-        return ['name', '_amount', 'hand']
+        return ['name', '_amount', 'hand', 'user']
 
     def to_json(self):
         return {
             'amount': self.amount,
             'hand': self.hand.to_json(),
-            'name': self.name
+            'name': self.name,
+            'id': self.user.id if self.user else None,
         }
 
 class Table(MongoModel, Jsonify):
@@ -99,16 +112,22 @@ class Table(MongoModel, Jsonify):
 
     def add_gamer(self, gamer):
         if len(self.gamers) < self.max_gamers_count:
-            self.gamers.append(gamer)
+            if not self.has_gamer_at_the_table(gamer=gamer):
+                self.gamers.append(gamer)
+            else:
+                raise OverflowError("Gamer %s already at the table" % (str(gamer.id) + ' ' + gamer.name))
         else:
             raise OverflowError("Table is full")
 
     def remove_gamer(self, gamer):
         for idx, gmr in enumerate(self.gamers):
-            if gmr.name == gamer.name:
+            if gmr.id == gamer.id:
                 self.gamers.pop(idx)
                 return
         raise ValueError("Gamer does not exist")
+
+    def has_gamer_at_the_table(self, gamer):
+        return gamer.id in (gamer.id for gamer in self.gamers)
 
     def bet(self, gamer, amount):
         gamer.take_off_money(amount=amount)

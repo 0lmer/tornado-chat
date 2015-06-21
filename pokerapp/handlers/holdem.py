@@ -22,28 +22,29 @@ class PokerRoomHandler(BaseHandler):
 
 class PokerTablePageHandler(BaseHandler):
 
+    @web.authenticated
     @gen.coroutine
     def get(self, room_id):
         tables = yield HoldemTable.find(_id=str(room_id))
         table = bson_util.dumps(tables[0].to_json())
-        self.render('pokerapp/table.html', table=table)
+        self.render('pokerapp/table.html', table=table, session_sid=self.get_cookie("user"))
 
 
-# class PokerHandler(AuthSockJSHandler, BaseSockJSHandler):
-class PokerHandler(TornadoSubscribeHandler):
+class PokerHandler(AuthSockJSHandler, TornadoSubscribeHandler):
+# class PokerHandler(TornadoSubscribeHandler):
     CHANNEL = 'messages'
     # JOIN_MESSAGE = json.dumps({"text": "Someone joined.", "user": "system"})
     # LEAVE_MESSAGE = json.dumps({"text": "Someone left.", "user": "system"})
 
     @gen.coroutine
     def on_message(self, message):
-        yield super(PokerHandler, self).on_message(message=message)
+        super(PokerHandler, self).on_message(message=message)
         type = {
             'table': {
                 'join': self.join_table,
                 'leave': self.leave_table
             }
-        }.get(self._message_json['type'], {})
+        }.get(self._message_json.get('type'), {})
         action = type.get(self._message_json['action'], lambda: 1)
         yield action()
 
@@ -53,8 +54,7 @@ class PokerHandler(TornadoSubscribeHandler):
 
         tables = yield HoldemTable.find(_id=str(table_id))
         table = tables[0]
-        gamer = Gamer()
-        gamer.name = u'Vasya'
+        gamer = Gamer.from_user(user=self.current_user)
         table.add_gamer(gamer=gamer)
         yield table.save()
         self.send_message(json.dumps({
@@ -71,8 +71,7 @@ class PokerHandler(TornadoSubscribeHandler):
 
         tables = yield HoldemTable.find(_id=str(table_id))
         table = tables[0]
-        gamer = Gamer()
-        gamer.name = 'Vasya'
+        gamer = Gamer.from_user(user=self.current_user)
         table.remove_gamer(gamer=gamer)
         yield table.save()
         self.send_message(json.dumps({

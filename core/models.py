@@ -114,14 +114,18 @@ class MongoModel(Jsonify, object):
         response, error = yield gen.Task(cls._collection().update, query, update, upsert=or_create, multi=multi)
         raise gen.Return(None)
 
+    @property
+    def id(self):
+        return str(self._id)
+
     @gen.coroutine
     def save(self):
         if not hasattr(self, '_id') or not getattr(self, '_id'):
             resp = yield self.__class__.insert(self.bson)
-            print "Inserted! %s" % resp
+            print "%s model inserted! %s" % (self.__class__.__name__, resp, )
         else:
             resp = yield self.__class__.mongo_update(query={'_id': self._id}, update=self.bson)
-            print "Updated! %s" % resp
+            print "%s model updated! %s" % (self.__class__.__name__, resp, )
 
     @gen.coroutine
     def delete(self):
@@ -148,7 +152,7 @@ class User(MongoModel):
     @classmethod
     @gen.coroutine
     def get_by_login_password(cls, login, password):
-        password = hashlib.md5(''.join([settings["cookie_secret"], password, settings["cookie_secret"]])).hexdigest()
+        password = User(login=login)._hexed_password(password)
         users = yield cls.find(login=login, password=unicode(password))
         try:
             user = users[0]
@@ -157,10 +161,13 @@ class User(MongoModel):
         raise gen.Return(user)
 
     def set_password(self, new_password):
-        password = hashlib.md5(''.join([settings["cookie_secret"], new_password, settings["cookie_secret"]]))\
-                   .hexdigest()
+        password = self._hexed_password(new_password)
         self.password = password
+
+    def _hexed_password(self, password):
+        return hashlib.md5(''.join([settings["cookie_secret"], self.login,
+                                    password, settings["cookie_secret"]])).hexdigest()
 
     @property
     def bson_properties(self):
-        return ['login', 'name', 'password', 'age', 'created', 'updated', 'last_visited']
+        return ['login', 'name', 'password', 'age', 'created', 'updated', 'last_visited', '_id']
