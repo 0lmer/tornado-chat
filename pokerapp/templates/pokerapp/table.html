@@ -19,77 +19,64 @@
         {% raw %}
         <div class="container-fluid">
             <div class="row">
-                <input class="btn btn-success" type="button" value="Join!" ng-click="join()"/>
-                <input class="btn btn-danger" type="button" value="Leave..." ng-click="leave()"/>
+                <form>
+                    <input class="btn btn-success" type="button" value="Join!" ng-click="join()"/>
+                    <input class="btn btn-danger" type="button" value="Leave..." ng-click="leave()"/>
+                </form>
+                <form>
+                    <input type="text" ng-model="betAmount"/>
+                    <input class="btn" type="button" value="Bet" ng-click="bet()"/>
+                </form>
             </div>
             <div class="row">
                 <div class="col-xs-12 well">
-                    <div class="row table-gamer-row">
+                    <div class="row table-player-row">
                         <div class="col-xs-2 center-text"></div>
                         <div class="col-xs-4 center-text">
-                            Player5 - {{ gamers[4].name }}
+                            Player5 - {{ players[4].name }}
                         </div>
                         <div class="col-xs-4 center-text">
-                            Player6 - {{ gamers[5].name }}
+                            Player6 - {{ players[5].name }}
                         </div>
                         <div class="col-xs-2 center-text"></div>
                     </div>
 
-                    <div class="row table-gamer-row">
+                    <div class="row table-player-row">
                         <div class="col-xs-4 center-text">
-                            Player4 - {{ gamers[3].name }}
+                            Player4 - {{ players[3].name }}
                         </div>
                         <div class="col-xs-4">
+                            <p>Pot: {{ pot }}</p>
+                            <p>Circle pot: {{ circlePot }}</p>
                         </div>
                         <div class="col-xs-4 center-text">
-                            Player7 - {{ gamers[6].name }}
+                            Player7 - {{ players[6].name }}
                         </div>
                     </div>
 
-                    <div class="row table-gamer-row">
+                    <div class="row table-player-row">
                         <div class="col-xs-4 center-text">
-                            Player3 - {{ gamers[2].name }}
+                            Player3 - {{ players[2].name }}
                         </div>
                         <div class="col-xs-4"></div>
                         <div class="col-xs-4 center-text">
-                            Player8 - {{ gamers[7].name }}
+                            Player8 - {{ players[7].name }}
                         </div>
                     </div>
 
-                    <div class="row table-gamer-row">
+                    <div class="row table-player-row">
                         <div class="col-xs-1"></div>
                         <div class="col-xs-3 center-text">
-                            Player2 - {{ gamers[1].name }}
+                            Player2 - {{ players[1].name }}
                         </div>
                         <div class="col-xs-4 center-text">
-                            Player1 - {{ gamers[0].name }}
+                            Player1 - {{ players[0].name }}
                         </div>
                         <div class="col-xs-3 center-text">
-                            Player9 - {{ gamers[8].name }}
+                            Player9 - {{ players[8].name }}
                         </div>
                         <div class="col-xs-1"></div>
                     </div>
-
-                    <!--<div class="chat-window">-->
-                        <!--<div id="chat-text" scroll-glue>-->
-                            <!--<div class="panel panel-default" ng-repeat="message in messages">-->
-                                <!--<div class="panel-heading"><b>{{ message.user }}:</b> {{ message.created_at | date }}</div>-->
-                                <!--<div class="panel-body" ng-bind-html="message.text | imagepreview | urlify | unsafe"></div>-->
-                            <!--</div>-->
-                        <!--</div>-->
-
-                        <!--<form id="input-form" class="form-inline">-->
-                            <!--<div class="form-group" style="width:100%;">-->
-                                <!--<div class="input-group" style="width:100%;">-->
-                                    <!--<input id="input-text" type="text" class="form-control" placeholder="Enter chat text here!"-->
-                                           <!--autofocus ng-model="currentMessage"/>-->
-                                    <!--<span class="input-group-btn">-->
-                                        <!--<button class="btn btn-primary" type="submit" ng-click="sendMessage(currentMessage)">Send</button>-->
-                                    <!--</span>-->
-                                <!--</div>-->
-                            <!--</div>-->
-                        <!--</form>-->
-                    <!--</div> &lt;!&ndash; .chat-window &ndash;&gt;-->
                 </div>
             </div>
         </div>

@@ -3,7 +3,7 @@ from core.handlers.auth import AuthSockJSHandler
 from core.handlers.base import BaseSockJSHandler, BaseHandler
 from chatapp.models import Message
 from core.handlers.subscribe import RabbitMQSubscribeHandler, RedisSubscribeHandler, TornadoSubscribeHandler
-from pokerapp.models.game import HoldemTable, Gamer
+from pokerapp.models.game import HoldemTable, Player
 from tornado import gen
 from tornado import web
 import json
@@ -30,7 +30,7 @@ class PokerTablePageHandler(BaseHandler):
         self.render('pokerapp/table.html', table=table, session_sid=self.get_cookie("user"))
 
 
-class PokerHandler(AuthSockJSHandler, TornadoSubscribeHandler):
+class PokerHandler(AuthSockJSHandler, RedisSubscribeHandler):
 # class PokerHandler(TornadoSubscribeHandler):
     CHANNEL = 'messages'
     # JOIN_MESSAGE = json.dumps({"text": "Someone joined.", "user": "system"})
@@ -42,7 +42,8 @@ class PokerHandler(AuthSockJSHandler, TornadoSubscribeHandler):
         type = {
             'table': {
                 'join': self.join_table,
-                'leave': self.leave_table
+                'leave': self.leave_table,
+                'bet': self.bet
             }
         }.get(self._message_json.get('type'), {})
         action = type.get(self._message_json['action'], lambda: 1)
@@ -54,14 +55,14 @@ class PokerHandler(AuthSockJSHandler, TornadoSubscribeHandler):
 
         tables = yield HoldemTable.find(_id=str(table_id))
         table = tables[0]
-        gamer = Gamer.from_user(user=self.current_user)
-        table.add_gamer(gamer=gamer)
+        player = Player.from_user(user=self.current_user)
+        table.add_player(player=player)
         yield table.save()
         self.send_message(json.dumps({
             'type': 'table',
             'action': 'join',
             'data': {
-                'gamer': gamer.to_json()
+                'player': player.to_json()
             }
         }))
 
@@ -71,13 +72,37 @@ class PokerHandler(AuthSockJSHandler, TornadoSubscribeHandler):
 
         tables = yield HoldemTable.find(_id=str(table_id))
         table = tables[0]
-        gamer = Gamer.from_user(user=self.current_user)
-        table.remove_gamer(gamer=gamer)
+        player = Player.from_user(user=self.current_user)
+        table.remove_player(player=player)
         yield table.save()
         self.send_message(json.dumps({
             'type': 'table',
             'action': 'leave',
             'data': {
-                'gamer': gamer.to_json()
+                'player': player.to_json()
             }
         }))
+
+    @gen.coroutine
+    def bet(self):
+        table_id = self._message_json['data']['table_id']
+        amount = self._message_json['data']['amount']
+
+        tables = yield HoldemTable.find(_id=str(table_id))
+        table = tables[0]
+        player = Player.from_user(user=self.current_user)
+        yield table.save()
+
+        self.send_message(json.dumps({
+            'type': 'table',
+            'action': 'bet',
+            'data': {
+                'player': player.to_json(),
+                'amount': amount
+            }
+        }))
+
+
+    @gen.coroutine
+    def receive_player_card(self):
+        pass

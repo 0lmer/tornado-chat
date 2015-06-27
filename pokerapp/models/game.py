@@ -39,7 +39,7 @@ class Hand(Jsonify):
         return self.__unicode__()
 
 
-class Gamer(Jsonify):
+class Player(Jsonify):
     def __init__(self):
         self.hand = Hand()
         self.name = u''
@@ -65,7 +65,7 @@ class Gamer(Jsonify):
 
     def take_off_money(self, amount):
         if not self.has_enough_money(amount):
-            raise ValueError("Gamer hasn't enough money!")
+            raise ValueError("Player hasn't enough money!")
         self._amount -= amount
 
     def has_enough_money(self, amount):
@@ -92,45 +92,45 @@ class Table(MongoModel, Jsonify):
     def __init__(self):
         super(Table, self).__init__()
         self.PLAN = {}
-        self.gamers = []
-        self.active_gamers = []
+        self.players = []
+        self.active_players = []
         self.board = Hand()
-        self.max_gamers_count = 9
+        self.max_players_count = 9
         self.deck = Deck()
         self.pot = 0
         self.circle_pot = 0
         self.buy_in = 0
         self.rake = 0  # Comission
         self.current_step = 0
-        self.current_gamer = None
+        self.current_player = None
         self.name = None
 
     @property
     def bson_properties(self):
-        return ['gamers', 'active_gamers', 'board', 'max_gamers_count', 'deck', 'pot', 'circle_pot', 'buy_in', 'rake',
-                'current_step', 'current_gamer', 'name']
+        return ['players', 'active_players', 'board', 'max_players_count', 'deck', 'pot', 'circle_pot', 'buy_in', 'rake',
+                'current_step', 'current_player', 'name']
 
-    def add_gamer(self, gamer):
-        if len(self.gamers) < self.max_gamers_count:
-            if not self.has_gamer_at_the_table(gamer=gamer):
-                self.gamers.append(gamer)
+    def add_player(self, player):
+        if len(self.players) < self.max_players_count:
+            if not self.has_player_at_the_table(player=player):
+                self.players.append(player)
             else:
-                raise OverflowError("Gamer %s already at the table" % (str(gamer.id) + ' ' + gamer.name))
+                raise OverflowError("Player %s already at the table" % (str(player.id) + ' ' + player.name))
         else:
             raise OverflowError("Table is full")
 
-    def remove_gamer(self, gamer):
-        for idx, gmr in enumerate(self.gamers):
-            if gmr.id == gamer.id:
-                self.gamers.pop(idx)
+    def remove_player(self, player):
+        for idx, gmr in enumerate(self.players):
+            if gmr.id == player.id:
+                self.players.pop(idx)
                 return
-        raise ValueError("Gamer does not exist")
+        raise ValueError("Player does not exist")
 
-    def has_gamer_at_the_table(self, gamer):
-        return gamer.id in (gamer.id for gamer in self.gamers)
+    def has_player_at_the_table(self, player):
+        return player.id in (player.id for player in self.players)
 
-    def bet(self, gamer, amount):
-        gamer.take_off_money(amount=amount)
+    def bet(self, player, amount):
+        player.take_off_money(amount=amount)
         self.circle_pot += amount
 
     def next_step(self):
@@ -140,15 +140,15 @@ class Table(MongoModel, Jsonify):
         self.PLAN.get(self.current_step, (lambda: 1))()
 
     def clean(self):
-        self.active_gamers = self.gamers[:]
+        self.active_players = self.players[:]
         self.pot = 0
         self.circle_pot = 0
         self.deck = HoldemDeck()
         self.deck.shuffle()
         self.board.clean()
         self.current_step = 0
-        for gamer in self.gamers:
-            gamer.hand.clean()
+        for player in self.players:
+            player.hand.clean()
 
     def _merge_cirlce_pot(self):
         self.pot += self.circle_pot
@@ -156,8 +156,8 @@ class Table(MongoModel, Jsonify):
 
     def to_json(self):
         return {
-            'gamers': [gamer.to_json() for gamer in self.gamers],
-            'active_gamers': [gamer.to_json() for gamer in self.active_gamers],
+            'players': [player.to_json() for player in self.players],
+            'active_players': [player.to_json() for player in self.active_players],
             'pot': self.pot,
             'circle_pot': self.circle_pot,
             'board': self.board.to_json(),
@@ -181,10 +181,10 @@ class HoldemTable(Table):
 
     def preflop(self):
         self._merge_cirlce_pot()
-        self.active_gamers = copy.copy(self.gamers)
-        for gamer in self.active_gamers:
-            gamer.add_card(card=self.deck.pop_random_card())
-            gamer.add_card(card=self.deck.pop_random_card())
+        self.active_players = copy.copy(self.players)
+        for player in self.active_players:
+            player.add_card(card=self.deck.pop_random_card())
+            player.add_card(card=self.deck.pop_random_card())
 
     def flop(self):
         self._merge_cirlce_pot()

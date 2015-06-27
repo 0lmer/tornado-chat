@@ -3,10 +3,10 @@
 import unittest
 from core.models import User
 from pokerapp.models.cards import HoldemDeck, Deck, Card, Suit, Heart
-from pokerapp.models.game import Hand, Table, HoldemTable, Gamer as GamerOrig
+from pokerapp.models.game import Hand, Table, HoldemTable, Player as PlayerOrig
 
 
-class Gamer(GamerOrig):
+class Player(PlayerOrig):
     @property
     def id(self):
         if not hasattr(self, '_mocked_id'):
@@ -44,80 +44,80 @@ class HandTest(unittest.TestCase):
         self.assertIs(len(self.hand.to_json()['cards']), 3)
 
 
-class GamerTest(unittest.TestCase):
+class PlayerTest(unittest.TestCase):
     def setUp(self):
-        self.gamer = GamerOrig()
+        self.player = PlayerOrig()
 
     def test_has_enough_money(self):
-        self.assertFalse(self.gamer.has_enough_money(amount=30))
-        self.assertTrue(self.gamer.has_enough_money(amount=0))
+        self.assertFalse(self.player.has_enough_money(amount=30))
+        self.assertTrue(self.player.has_enough_money(amount=0))
 
     def test_add_card(self):
-        self.assertEqual(len(self.gamer.hand.cards), 0)
+        self.assertEqual(len(self.player.hand.cards), 0)
         card = Card.from_code('Qd')
-        self.gamer.add_card(card)
+        self.player.add_card(card)
 
     def test_take_off_money(self):
-        self.gamer._amount = 50
-        self.gamer.take_off_money(amount=20)
-        self.assertEqual(self.gamer._amount, 30)
-        self.assertRaises(ValueError, self.gamer.take_off_money, 31)
+        self.player._amount = 50
+        self.player.take_off_money(amount=20)
+        self.assertEqual(self.player._amount, 30)
+        self.assertRaises(ValueError, self.player.take_off_money, 31)
 
     def test_to_json(self):
-        self.assertEqual(sorted(self.gamer.to_json().keys()), sorted(['hand', 'amount', 'name', 'id']))
-        self.gamer._amount = 30
-        self.gamer.name = u"John"
-        self.assertEqual(self.gamer.to_json()['amount'], 30)
-        self.assertIsInstance(self.gamer.to_json()['hand'], dict)
-        self.assertEqual(self.gamer.to_json()['name'], u"John")
+        self.assertEqual(sorted(self.player.to_json().keys()), sorted(['hand', 'amount', 'name', 'id']))
+        self.player._amount = 30
+        self.player.name = u"John"
+        self.assertEqual(self.player.to_json()['amount'], 30)
+        self.assertIsInstance(self.player.to_json()['hand'], dict)
+        self.assertEqual(self.player.to_json()['name'], u"John")
 
-    def test_create_gamer_from_user(self):
+    def test_create_player_from_user(self):
         user = User(login='test_login')
         user.name = 'test_name'
-        gamer = GamerOrig.from_user(user=user)
-        self.assertEqual(gamer.name, user.name)
-        self.assertEqual(gamer.user, user)
-        self.assertEqual(gamer.id, user.id)
+        player = PlayerOrig.from_user(user=user)
+        self.assertEqual(player.name, user.name)
+        self.assertEqual(player.user, user)
+        self.assertEqual(player.id, user.id)
 
 
 class TableTest(unittest.TestCase):
     def setUp(self):
         self.table = Table()
         for step in xrange(0, 4):
-            gamer = Gamer()
-            gamer.id = step
-            self.table.add_gamer(gamer=gamer)
+            player = Player()
+            player.id = step
+            self.table.add_player(player=player)
 
-    def test_add_gamer(self):
-        gamer = Gamer()
-        gamer.id = 99
-        self.assertEqual(len(self.table.gamers), 4)
-        self.table.add_gamer(gamer=gamer)
-        self.assertEqual(len(self.table.gamers), 5)
+    def test_add_player(self):
+        player = Player()
+        player.id = 99
+        self.assertEqual(len(self.table.players), 4)
+        self.table.add_player(player=player)
+        self.assertEqual(len(self.table.players), 5)
 
         # test duplicate user
-        self.assertRaises(OverflowError, self.table.add_gamer, gamer)
+        self.assertRaises(OverflowError, self.table.add_player, player)
 
-    def test_has_gamer_at_the_table(self):
-        gamer = Gamer()
-        gamer.id = 99
-        self.assertEqual(self.table.has_gamer_at_the_table(gamer), False)
-        self.table.add_gamer(gamer=gamer)
-        self.assertEqual(self.table.has_gamer_at_the_table(gamer), True)
+    def test_has_player_at_the_table(self):
+        player = Player()
+        player.id = 99
+        self.assertEqual(self.table.has_player_at_the_table(player), False)
+        self.table.add_player(player=player)
+        self.assertEqual(self.table.has_player_at_the_table(player), True)
 
-    def test_add_and_remove_gamer(self):
-        gamer1 = Gamer()
-        gamer1.id = 98
-        gamer1.name = 'Vasya'
-        gamer2 = Gamer()
-        gamer2.id = 99
-        gamer2.name = 'Petya'
-        self.table.add_gamer(gamer1)
-        self.table.add_gamer(gamer2)
-        self.assertEqual(len(self.table.gamers), 6)
-        self.table.remove_gamer(gamer=gamer1)
-        self.table.remove_gamer(gamer=gamer2)
-        self.assertEqual(len(self.table.gamers), 4)
+    def test_add_and_remove_player(self):
+        player1 = Player()
+        player1.id = 98
+        player1.name = 'Vasya'
+        player2 = Player()
+        player2.id = 99
+        player2.name = 'Petya'
+        self.table.add_player(player1)
+        self.table.add_player(player2)
+        self.assertEqual(len(self.table.players), 6)
+        self.table.remove_player(player=player1)
+        self.table.remove_player(player=player2)
+        self.assertEqual(len(self.table.players), 4)
 
     def test_next_step(self):
         self.table.next_step()
@@ -127,10 +127,10 @@ class TableTest(unittest.TestCase):
 
     def test_to_json(self):
         self.assertIsInstance(self.table.to_json(), dict)
-        self.assertEqual(sorted(self.table.to_json().keys()), sorted(['_id', 'active_gamers', 'board', 'circle_pot',
-                                                                      'current_step', 'gamers', 'pot']))
-        self.assertIsInstance(self.table.to_json()['gamers'], list)
-        self.assertIsInstance(self.table.to_json()['active_gamers'], list)
+        self.assertEqual(sorted(self.table.to_json().keys()), sorted(['_id', 'active_players', 'board', 'circle_pot',
+                                                                      'current_step', 'players', 'pot']))
+        self.assertIsInstance(self.table.to_json()['players'], list)
+        self.assertIsInstance(self.table.to_json()['active_players'], list)
         self.assertEqual(self.table.to_json()['pot'], 0)
         self.assertEqual(self.table.to_json()['circle_pot'], 0)
         self.assertEqual(self.table.to_json()['current_step'], 0)
@@ -141,29 +141,29 @@ class HoldemTableTest(TableTest):
     def setUp(self):
         self.table = HoldemTable()
         for step in xrange(0, 4):
-            gamer = Gamer()
-            gamer.id = step
-            self.table.add_gamer(gamer=gamer)
+            player = Player()
+            player.id = step
+            self.table.add_player(player=player)
 
     def test_preflop_cards(self):
         self.table.preflop()
-        for gamer in self.table.gamers:
-            self.assertEqual(len(gamer.hand.cards), 2)
+        for player in self.table.players:
+            self.assertEqual(len(player.hand.cards), 2)
         self.assertEqual(len(self.table.board.cards), 0)
 
     def test_flop_cards(self):
         self.table.preflop()
         self.table.flop()
-        for gamer in self.table.gamers:
-            self.assertEqual(len(gamer.hand.cards), 2)
+        for player in self.table.players:
+            self.assertEqual(len(player.hand.cards), 2)
         self.assertEqual(len(self.table.board.cards), 3)
 
     def test_turn_cards(self):
         self.table.preflop()
         self.table.flop()
         self.table.turn()
-        for gamer in self.table.gamers:
-            self.assertEqual(len(gamer.hand.cards), 2)
+        for player in self.table.players:
+            self.assertEqual(len(player.hand.cards), 2)
         self.assertEqual(len(self.table.board.cards), 4)
 
     def test_river_cards(self):
@@ -171,30 +171,30 @@ class HoldemTableTest(TableTest):
         self.table.flop()
         self.table.turn()
         self.table.river()
-        for gamer in self.table.gamers:
-            self.assertEqual(len(gamer.hand.cards), 2)
+        for player in self.table.players:
+            self.assertEqual(len(player.hand.cards), 2)
         self.assertEqual(len(self.table.board.cards), 5)
 
-    def test_gamers_limit_in_room(self):
+    def test_players_limit_in_room(self):
         for step in xrange(0, 5):
-            gamer = Gamer()
-            gamer.id = 20 + step
-            self.table.add_gamer(gamer=gamer)
-        self.assertRaises(OverflowError, self.table.add_gamer, gamer)
+            player = Player()
+            player.id = 20 + step
+            self.table.add_player(player=player)
+        self.assertRaises(OverflowError, self.table.add_player, player)
 
     def test_next_step(self):
         pass
 
     def test_cards_in_next_step(self):
-        vasya = Gamer()
+        vasya = Player()
         vasya.id = 97
-        petya = Gamer()
+        petya = Player()
         petya.id = 98
-        dima = Gamer()
+        dima = Player()
         dima.id = 99
-        self.table.add_gamer(vasya)
-        self.table.add_gamer(petya)
-        self.table.add_gamer(dima)
+        self.table.add_player(vasya)
+        self.table.add_player(petya)
+        self.table.add_player(dima)
 
         self.assertEqual(len(dima.hand.cards), 0)
         self.table.next_step()  # preflop
@@ -226,22 +226,22 @@ class HoldemTableTest(TableTest):
         self.assertEqual(len(self.table.board.cards), 3)
 
     def test_bet_in_next_step(self):
-        vasya = Gamer()
+        vasya = Player()
         vasya.id = 97
-        petya = Gamer()
+        petya = Player()
         petya.id = 98
-        dima = Gamer()
+        dima = Player()
         dima.id = 99
-        self.table.add_gamer(vasya)
-        self.table.add_gamer(petya)
-        self.table.add_gamer(dima)
+        self.table.add_player(vasya)
+        self.table.add_player(petya)
+        self.table.add_player(dima)
         dima._amount = 400
 
         self.table.next_step()  # preflop
         self.assertEqual(dima._amount, 400)
         self.assertEqual(self.table.pot, 0)
         self.assertEqual(self.table.circle_pot, 0)
-        self.table.bet(gamer=dima, amount=50)
+        self.table.bet(player=dima, amount=50)
         self.assertEqual(dima._amount, 350)
         self.assertEqual(self.table.pot, 0)
         self.assertEqual(self.table.circle_pot, 50)
@@ -251,7 +251,7 @@ class HoldemTableTest(TableTest):
         self.assertEqual(dima._amount, 350)
         self.assertEqual(self.table.pot, 50)
         self.assertEqual(self.table.circle_pot, 0)
-        self.table.bet(gamer=dima, amount=50)
+        self.table.bet(player=dima, amount=50)
         self.assertEqual(dima._amount, 300)
         self.assertEqual(self.table.pot, 50)
         self.assertEqual(self.table.circle_pot, 50)
@@ -260,7 +260,7 @@ class HoldemTableTest(TableTest):
         self.assertEqual(dima._amount, 300)
         self.assertEqual(self.table.pot, 100)
         self.assertEqual(self.table.circle_pot, 0)
-        self.table.bet(gamer=dima, amount=25)
+        self.table.bet(player=dima, amount=25)
         self.assertEqual(dima._amount, 275)
         self.assertEqual(self.table.pot, 100)
         self.assertEqual(self.table.circle_pot, 25)
@@ -269,7 +269,7 @@ class HoldemTableTest(TableTest):
         self.assertEqual(dima._amount, 275)
         self.assertEqual(self.table.pot, 125)
         self.assertEqual(self.table.circle_pot, 0)
-        self.table.bet(gamer=dima, amount=25)
+        self.table.bet(player=dima, amount=25)
         self.assertEqual(dima._amount, 250)
         self.assertEqual(self.table.pot, 125)
         self.assertEqual(self.table.circle_pot, 25)
@@ -278,7 +278,7 @@ class HoldemTableTest(TableTest):
         self.assertEqual(dima._amount, 250)
         self.assertEqual(self.table.pot, 150)
         self.assertEqual(self.table.circle_pot, 0)
-        self.table.bet(gamer=dima, amount=150)
+        self.table.bet(player=dima, amount=150)
         self.assertEqual(dima._amount, 100)
         self.assertEqual(self.table.pot, 150)
         self.assertEqual(self.table.circle_pot, 150)
@@ -289,12 +289,12 @@ class HoldemTableTest(TableTest):
         self.assertEqual(self.table.circle_pot, 0)
 
     def test_bet(self):
-        gamer = Gamer()
-        gamer._amount = 300
+        player = Player()
+        player._amount = 300
         amount = 100
         self.assertEqual(self.table.pot, 0)
         self.assertEqual(self.table.circle_pot, 0)
-        self.table.bet(gamer, amount)
+        self.table.bet(player, amount)
         self.assertEqual(self.table.pot, 0)
         self.assertEqual(self.table.circle_pot, amount)
 
