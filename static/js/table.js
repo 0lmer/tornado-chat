@@ -23,6 +23,10 @@ pokerApp.controller('roomCtrl', function($scope, $http, socketFactory, table, si
         $scope.betAmount = 0;
     };
 
+    $scope.fold = function() {
+        socketFactory.fold($scope.table._id);
+    };
+
     $scope.init = function() {
         socketFactory.connect();
         socketFactory.setSid(sid);
@@ -41,10 +45,10 @@ pokerApp.controller('roomCtrl', function($scope, $http, socketFactory, table, si
                         case 'bet':
                             $scope.wsController.bet(messageData.data.player, parseFloat(messageData.data.amount));
                             break;
-                        //case 'fold':
-                        //    $scope.wsController.fold(messageData.data.player);
-                        //    break;
-                        //
+                        case 'fold':
+                            $scope.wsController.fold(messageData.data.player);
+                            break;
+
                         //case 'receive_player_card':
                         //    $scope.wsController.receivePlayerCard(messageData.data.player, messageData.data.card);
                         //    break;
@@ -80,12 +84,12 @@ pokerApp.controller('roomCtrl', function($scope, $http, socketFactory, table, si
                     $scope.pot += amount;
                     console.log('Player ' + player.name + ' bet ' + amount);
                 });
+            },
+            fold: function(player) {
+                $scope.$apply(function() {
+                    console.log('Player ' + player.name + ' fold.');
+                });
             }//,
-            //fold: function(player) {
-            //    $scope.$apply(function() {
-            //        console.log('Player ' + player.name + ' fold.');
-            //    });
-            //},
             //receivePlayerCard: function(player, card) {
             //    $scope.$apply(function() {
             //        console.log('Player ' + player.name + ' get ' + card + ' card.');
@@ -165,9 +169,9 @@ pokerApp.factory('socketFactory', function() {
         wsSend({ type:'table', action: 'bet', data: { table_id: tableId, amount: amount } });
     };
 
-    //service.fold = function() {
-    //    wsSend({type: 'table', action: 'fold'});
-    //};
+    service.fold = function(tableId) {
+        wsSend({type: 'table', action: 'fold', data: { table_id: tableId }});
+    };
 
     service.getMessages = function() {
         return messages;

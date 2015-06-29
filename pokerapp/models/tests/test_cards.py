@@ -7,13 +7,16 @@ import copy
 
 class DeckTest(unittest.TestCase):
     def setUp(self):
-        self.deck = Deck()
+        self.empty_deck = Deck()
+        self.full_deck = Deck(suits=[Suit.from_type(suit_type) for suit_type in Suit.TYPES], rank_range=(2, 15, ))
 
-    def test_deck_length(self):
-        self.assertEqual(len(self.deck._cards), 0)
+    def test_length(self):
+        self.assertEqual(self.empty_deck.length(), 0)
+        full_deck_length = 52
+        self.assertEqual(self.full_deck.length(), full_deck_length)
 
     def test_pop_card_from_deck(self):
-        self.assertRaises(IndexError, self.deck.pop_random_card)
+        self.assertRaises(IndexError, self.empty_deck.pop_random_card)
 
     def test_shuffle(self):
         deck = Deck(suits=[Suit.from_type(suit_type) for suit_type in Suit.TYPES], rank_range=(2, 15, ))

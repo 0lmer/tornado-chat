@@ -27,14 +27,20 @@ class HandTest(unittest.TestCase):
     def test_adding_card(self):
         for card in self.cards:
             self.hand.add_card(card=card)
-        self.assertEqual(len(self.hand.cards), 3)
+        self.assertEqual(self.hand.length(), 3)
 
     def test_clean_cards(self):
         for card in self.cards:
             self.hand.add_card(card=card)
-        self.assertEqual(len(self.hand.cards), 3)
+        self.assertEqual(self.hand.length(), 3)
         self.hand.clean()
-        self.assertEqual(len(self.hand.cards), 0)
+        self.assertEqual(self.hand.length(), 0)
+
+    def test_length(self):
+        self.assertEqual(self.hand.length(), 0)
+        for card in self.cards:
+            self.hand.add_card(card=card)
+        self.assertEqual(self.hand.length(), 3)
 
     def test_to_json(self):
         self.assertEqual(sorted(self.hand.to_json().keys()), sorted(['cards']))
@@ -53,7 +59,7 @@ class PlayerTest(unittest.TestCase):
         self.assertTrue(self.player.has_enough_money(amount=0))
 
     def test_add_card(self):
-        self.assertEqual(len(self.player.hand.cards), 0)
+        self.assertEqual(self.player.hand.length(), 0)
         card = Card.from_code('Qd')
         self.player.add_card(card)
 
@@ -148,32 +154,32 @@ class HoldemTableTest(TableTest):
     def test_preflop_cards(self):
         self.table.preflop()
         for player in self.table.players:
-            self.assertEqual(len(player.hand.cards), 2)
-        self.assertEqual(len(self.table.board.cards), 0)
+            self.assertEqual(player.hand.length(), 2)
+        self.assertEqual(self.table.board.length(), 0)
 
     def test_flop_cards(self):
         self.table.preflop()
         self.table.flop()
         for player in self.table.players:
-            self.assertEqual(len(player.hand.cards), 2)
-        self.assertEqual(len(self.table.board.cards), 3)
+            self.assertEqual(player.hand.length(), 2)
+        self.assertEqual(self.table.board.length(), 3)
 
     def test_turn_cards(self):
         self.table.preflop()
         self.table.flop()
         self.table.turn()
-        for player in self.table.players:
-            self.assertEqual(len(player.hand.cards), 2)
-        self.assertEqual(len(self.table.board.cards), 4)
+        for player in self.table.active_players:
+            self.assertEqual(player.hand.length(), 2)
+        self.assertEqual(self.table.board.length(), 4)
 
     def test_river_cards(self):
         self.table.preflop()
         self.table.flop()
         self.table.turn()
         self.table.river()
-        for player in self.table.players:
-            self.assertEqual(len(player.hand.cards), 2)
-        self.assertEqual(len(self.table.board.cards), 5)
+        for player in self.table.active_players:
+            self.assertEqual(player.hand.length(), 2)
+        self.assertEqual(self.table.board.length(), 5)
 
     def test_players_limit_in_room(self):
         for step in xrange(0, 5):
@@ -196,34 +202,34 @@ class HoldemTableTest(TableTest):
         self.table.add_player(petya)
         self.table.add_player(dima)
 
-        self.assertEqual(len(dima.hand.cards), 0)
+        self.assertEqual(dima.hand.length(), 0)
         self.table.next_step()  # preflop
-        self.assertEqual(len(dima.hand.cards), 2)
-        self.assertEqual(len(self.table.board.cards), 0)
+        self.assertEqual(dima.hand.length(), 2)
+        self.assertEqual(self.table.board.length(), 0)
 
         self.table.next_step()  # flop
-        self.assertEqual(len(dima.hand.cards), 2)
-        self.assertEqual(len(self.table.board.cards), 3)
+        self.assertEqual(dima.hand.length(), 2)
+        self.assertEqual(self.table.board.length(), 3)
 
         self.table.next_step()  # turn
-        self.assertEqual(len(dima.hand.cards), 2)
-        self.assertEqual(len(self.table.board.cards), 4)
+        self.assertEqual(dima.hand.length(), 2)
+        self.assertEqual(self.table.board.length(), 4)
 
         self.table.next_step()  # river
-        self.assertEqual(len(dima.hand.cards), 2)
-        self.assertEqual(len(self.table.board.cards), 5)
+        self.assertEqual(dima.hand.length(), 2)
+        self.assertEqual(self.table.board.length(), 5)
 
         self.table.next_step()  # showdown
-        self.assertEqual(len(dima.hand.cards), 2)
-        self.assertEqual(len(self.table.board.cards), 5)
+        self.assertEqual(dima.hand.length(), 2)
+        self.assertEqual(self.table.board.length(), 5)
 
         self.table.next_step()  # new preflop
-        self.assertEqual(len(dima.hand.cards), 2)
-        self.assertEqual(len(self.table.board.cards), 0)
+        self.assertEqual(dima.hand.length(), 2)
+        self.assertEqual(self.table.board.length(), 0)
 
         self.table.next_step()  # new flop
-        self.assertEqual(len(dima.hand.cards), 2)
-        self.assertEqual(len(self.table.board.cards), 3)
+        self.assertEqual(dima.hand.length(), 2)
+        self.assertEqual(self.table.board.length(), 3)
 
     def test_bet_in_next_step(self):
         vasya = Player()

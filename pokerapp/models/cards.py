@@ -39,6 +39,9 @@ class Deck(Jsonify):
     def shuffle(self):
         shuffle(self._cards)
 
+    def length(self):
+        return len(self._cards)
+
 
 class HoldemDeck(Deck):
     def __init__(self):

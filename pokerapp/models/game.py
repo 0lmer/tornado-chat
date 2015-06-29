@@ -12,28 +12,31 @@ import copy
 
 class Hand(Jsonify):
     def __init__(self):
-        self.cards = []
+        self._cards = []
 
     def add_card(self, card):
-        self.cards.append(card)
+        self._cards.append(card)
 
     def clean(self):
-        del self.cards[:]
+        del self._cards[:]
+
+    def length(self):
+        return len(self._cards)
 
     def to_json(self):
         return {
-            'cards': [card.to_json() for card in self.cards]
+            'cards': [card.to_json() for card in self._cards]
         }
 
     @property
     def bson_properties(self):
-        return ['cards']
+        return ['_cards']
 
     def __str__(self):
-        return "%s" % [str(card) for card in self.cards]
+        return "%s" % [str(card) for card in self._cards]
 
     def __unicode__(self):
-        return u", ".join([unicode(card) for card in self.cards])
+        return u", ".join([unicode(card) for card in self._cards])
 
     def __repr__(self):
         return self.__unicode__()
