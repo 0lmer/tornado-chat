@@ -54,6 +54,7 @@ class Player(Jsonify):
         instance = cls()
         instance.user = user
         instance.name = user.name
+        instance._amount = user.total_amount
         return instance
 
     @property
@@ -87,8 +88,27 @@ class Player(Jsonify):
             'amount': self.amount,
             'hand': self.hand.to_json(),
             'name': self.name,
-            'id': self.user.id if self.user else None,
+            'id': self.id,
         }
+
+    def __eq__(self, other):
+        try:
+            return self.id == other.id and self.id is not None
+        except AttributeError, ex:
+            return False
+
+    def __ne__(self, other):
+        try:
+            return (not (self.id == other.id)) or (None in [self.id, other.id])
+        except AttributeError, ex:
+            return True
+
+    def __str__(self):
+        return '<Player %s %s>' % (self.name, self.id, )
+
+    def __unicode__(self):
+        return u'<Player %s %s>' % (self.name, self.id, )
+
 
 class Table(MongoModel, Jsonify):
 
@@ -97,6 +117,7 @@ class Table(MongoModel, Jsonify):
         self.PLAN = {}
         self.players = []
         self.active_players = []
+        self._active_player = None
         self.board = Hand()
         self.max_players_count = 9
         self.deck = Deck()
@@ -116,6 +137,8 @@ class Table(MongoModel, Jsonify):
     def add_player(self, player):
         if len(self.players) < self.max_players_count:
             if not self.has_player_at_the_table(player=player):
+                if not len(self.players):
+                    self._set_next_active_player(player)
                 self.players.append(player)
             else:
                 raise OverflowError("Player %s already at the table" % (str(player.id) + ' ' + player.name))
@@ -123,18 +146,26 @@ class Table(MongoModel, Jsonify):
             raise OverflowError("Table is full")
 
     def remove_player(self, player):
-        for idx, gmr in enumerate(self.players):
-            if gmr.id == player.id:
-                self.players.pop(idx)
-                return
-        raise ValueError("Player does not exist")
+        try:
+            player_idx = self.players.index(player)
+            try:
+                if self._active_player == player:
+                    self._set_next_active_player(current_player=player)
+            except ValueError, ex:
+                self._active_player = None
+            self.players.pop(player_idx)
+        except ValueError, ex:
+            raise ValueError("Player does not exist")
 
     def has_player_at_the_table(self, player):
-        return player.id in (player.id for player in self.players)
+        return player in self.players
 
     def bet(self, player, amount):
+        if self._active_player != player:
+            raise ValueError("%s is not active player (%s)" % (player, self._active_player, ))
         player.take_off_money(amount=amount)
         self.circle_pot += amount
+        self._set_next_active_player(current_player=player)
 
     def next_step(self):
         if self.current_step >= len(self.PLAN.keys()):
@@ -152,10 +183,22 @@ class Table(MongoModel, Jsonify):
         self.current_step = 0
         for player in self.players:
             player.hand.clean()
+        self._active_player = self.active_players[0] if len(self.active_players) else None
 
     def _merge_cirlce_pot(self):
         self.pot += self.circle_pot
         self.circle_pot = 0
+
+    def _set_next_active_player(self, current_player):
+        if self._active_player is None:
+            self._active_player = current_player
+            return
+
+        active_player_idx = self.active_players.index(self._active_player)
+        if (active_player_idx + 1) < len(self.active_players):
+            self._active_player = self.active_players[active_player_idx+1]
+        else:
+            self._active_player = self.players[0]
 
     def to_json(self):
         return {

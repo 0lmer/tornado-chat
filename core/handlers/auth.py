@@ -26,6 +26,15 @@ class LoginHandler(BaseHandler):
         self.redirect(self.get_argument("next", default="/"))
 
 
+class LogoutHandler(BaseHandler):
+
+    def get(self):
+        session = self.project_session
+        session['current_user'] = None
+        session.save()
+        self.redirect("/")
+
+
 class RegisterHandler(BaseHandler):
 
     def get(self):

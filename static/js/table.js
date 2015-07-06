@@ -7,8 +7,9 @@ pokerApp.controller('roomCtrl', function($scope, $http, socketFactory, table, si
     $scope.sid = sid;
     $scope.players = $scope.table.players;
     $scope.betAmount = 0;
-    $scope.pot = 0;
-    $scope.circlePot = 0;
+    $scope.pot = $scope.table.pot;
+    console.log($scope.table);
+    $scope.circlePot = $scope.table.circle_pot;
 
     $scope.join = function() {
         socketFactory.join($scope.table._id);
@@ -187,6 +188,19 @@ pokerApp.factory('socketFactory', function() {
     };
 
     return service;
+});
+
+pokerApp.directive('playerView', function() {
+    return {
+        compile: function compile(templateElement, templateAttrs) {
+            var playerIdx = parseInt(templateAttrs.playerIdx);
+            var player = templateAttrs.playerView + "[" + playerIdx + "]";
+            templateElement.html("<div><p>Player" + (playerIdx+1) +
+                " - {{"+player+".name}}: {{"+player+".amount}}</p><p>Cards: {{"+player+".hand.cards}}</p></div>");
+        },
+        link: function(scope, element, attrs) {
+        }
+    }
 });
 
 pokerApp.factory('urlFactory', function() {

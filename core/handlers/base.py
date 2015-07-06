@@ -85,6 +85,7 @@ class BaseHandler(JinjaTemplateRendering, AuthorizedHandler, tornado.web.Request
             'request': self.request,
             'xsrf_token': self.xsrf_token,
             'xsrf_form_html': self.xsrf_form_html,
+            'current_user': self.current_user,
         })
         content = self.render_template(template_name, **kwargs)
         self.write(content)

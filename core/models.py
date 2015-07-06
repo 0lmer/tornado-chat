@@ -116,11 +116,12 @@ class MongoModel(Jsonify, object):
 
     @property
     def id(self):
-        return str(self._id)
+        return str(self._id) if self._id is not None else None
 
     @gen.coroutine
     def save(self):
         if not hasattr(self, '_id') or not getattr(self, '_id'):
+            self._id = ObjectId()
             resp = yield self.__class__.insert(self.bson)
             print "%s model inserted! %s" % (self.__class__.__name__, resp, )
         else:
@@ -148,6 +149,7 @@ class User(MongoModel):
         self.created = datetime.datetime.now()
         self.updated = datetime.datetime.now()
         self.last_visited = datetime.datetime.now()
+        self.total_amount = 0
 
     @classmethod
     @gen.coroutine
@@ -170,4 +172,4 @@ class User(MongoModel):
 
     @property
     def bson_properties(self):
-        return ['login', 'name', 'password', 'age', 'created', 'updated', 'last_visited', '_id']
+        return ['_id', 'login', 'name', 'password', 'age', 'created', 'updated', 'last_visited', 'total_amount']

@@ -9,6 +9,7 @@ from tornado import web
 import json
 from bson import json_util as bson_util
 from tornado.web import HTTPError
+import logging
 
 
 class PokerRoomHandler(BaseHandler):
@@ -30,25 +31,6 @@ class PokerTablePageHandler(BaseHandler):
         self.render('pokerapp/table.html', table=table, session_sid=self.get_cookie("user"))
 
 
-class PokerHandler(AuthSockJSHandler, RedisSubscribeHandler):
-# class PokerHandler(TornadoSubscribeHandler):
-    CHANNEL = 'messages'
-    # JOIN_MESSAGE = json.dumps({"text": "Someone joined.", "user": "system"})
-    # LEAVE_MESSAGE = json.dumps({"text": "Someone left.", "user": "system"})
-
-    @gen.coroutine
-    def on_message(self, message):
-        super(PokerHandler, self).on_message(message=message)
-        controllers = {
-            'table': TableController
-        }
-        controller_cls = controllers.get(self._message_json.get('type'))
-        if controller_cls:
-            controller = controller_cls(handler=self)
-            action = controller.get_action(self._message_json['action'])
-            yield action()
-
-
 class TableController(object):
 
     def __init__(self, handler=None):
@@ -59,6 +41,7 @@ class TableController(object):
             'bet': self._bet,
             'fold': self._fold
         }
+        self._table = None
 
     def get_action(self, action):
         return self.ACTION_MAP.get(action, lambda: 1)
@@ -106,9 +89,10 @@ class TableController(object):
 
     @gen.coroutine
     def _bet(self):
-        amount = self.handler._message_json['data']['amount']
-        table = yield self._get_table()
+        amount = float(self.handler._message_json['data']['amount'])
         player = Player.from_user(user=self.handler.current_user)
+        table = yield self._get_table()
+        table.bet(player=player, amount=amount)
         yield table.save()
 
         self._send_message({
@@ -134,10 +118,11 @@ class TableController(object):
 
     @gen.coroutine
     def _get_table(self):
-        table_id = self.handler._message_json['data']['table_id']
-        tables = yield HoldemTable.find(_id=str(table_id))
-        table = tables[0]
-        raise gen.Return(table)
+        if not self._table:
+            table_id = self.handler._message_json['data']['table_id']
+            tables = yield HoldemTable.find(_id=str(table_id))
+            self._table = tables[0]
+        raise gen.Return(self._table)
 
     def _send_message(self, message_dict):
         response_dict = message_dict.copy()
@@ -146,3 +131,37 @@ class TableController(object):
         }
         response_dict.update(default_data)
         self.handler.send_message(json.dumps(response_dict))
+
+
+class PokerHandler(AuthSockJSHandler, RedisSubscribeHandler):
+    CHANNEL = 'messages'
+    _CONTROLLERS = {
+        'table': TableController
+    }
+    # JOIN_MESSAGE = json.dumps({"text": "Someone joined.", "user": "system"})
+    # LEAVE_MESSAGE = json.dumps({"text": "Someone left.", "user": "system"})
+
+    def __init__(self, session):
+        super(PokerHandler, self).__init__(session=session)
+        self._controller_objects = {}
+
+    @gen.coroutine
+    def on_message(self, message):
+        super(PokerHandler, self).on_message(message=message)
+        action = self._get_action()
+        if action is not None:
+            try:
+                yield action()
+            except Exception, ex:
+                logging.error("Error: %s" % ex)
+
+    def _get_action(self):
+        controller_type = self._message_json.get('type')
+        controller_cls = self._CONTROLLERS.get(controller_type)
+        action = None
+        if controller_cls:
+            if controller_type not in self._controller_objects.keys():
+                self._controller_objects[controller_type] = controller_cls(handler=self)
+            controller = self._controller_objects[controller_type]
+            action = controller.get_action(self._message_json['action'])
+        return action

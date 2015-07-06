@@ -85,6 +85,33 @@ class PlayerTest(unittest.TestCase):
         self.assertEqual(player.user, user)
         self.assertEqual(player.id, user.id)
 
+    def test_eq(self):
+        user = User(login='test_login')
+        user._id = 1
+        user2 = User(login='test_login2')
+        player = PlayerOrig.from_user(user=user)
+        player2 = PlayerOrig.from_user(user=user)
+        self.assertEqual(player, player2)
+        player3 = PlayerOrig.from_user(user=user2)
+        self.assertNotEqual(player, player3)
+        self.assertNotEqual(player3, player3)
+        self.assertNotEqual(player3, None)
+
+    def test_ne(self):
+        user = User(login='test_login')
+        user._id = 1
+        player = PlayerOrig.from_user(user=user)
+
+        user2 = User(login='test_login')
+        user2._id = 2
+        player2 = PlayerOrig.from_user(user=user2)
+
+        user3 = User(login='test_login2')
+        player3 = PlayerOrig.from_user(user=user2)
+
+        self.assertNotEqual(player, player2)
+        self.assertNotEqual(player, player3)
+
 
 class TableTest(unittest.TestCase):
     def setUp(self):
@@ -124,6 +151,7 @@ class TableTest(unittest.TestCase):
         self.table.remove_player(player=player1)
         self.table.remove_player(player=player2)
         self.assertEqual(len(self.table.players), 4)
+        self.assertRaises(ValueError, self.table.remove_player, player1)
 
     def test_next_step(self):
         self.table.next_step()
@@ -244,6 +272,7 @@ class HoldemTableTest(TableTest):
         dima._amount = 400
 
         self.table.next_step()  # preflop
+        self.table._active_player = dima
         self.assertEqual(dima._amount, 400)
         self.assertEqual(self.table.pot, 0)
         self.assertEqual(self.table.circle_pot, 0)
@@ -254,6 +283,7 @@ class HoldemTableTest(TableTest):
 
 
         self.table.next_step()  # flop
+        self.table._active_player = dima
         self.assertEqual(dima._amount, 350)
         self.assertEqual(self.table.pot, 50)
         self.assertEqual(self.table.circle_pot, 0)
@@ -263,6 +293,7 @@ class HoldemTableTest(TableTest):
         self.assertEqual(self.table.circle_pot, 50)
 
         self.table.next_step()  # turn
+        self.table._active_player = dima
         self.assertEqual(dima._amount, 300)
         self.assertEqual(self.table.pot, 100)
         self.assertEqual(self.table.circle_pot, 0)
@@ -272,6 +303,7 @@ class HoldemTableTest(TableTest):
         self.assertEqual(self.table.circle_pot, 25)
 
         self.table.next_step()  # river
+        self.table._active_player = dima
         self.assertEqual(dima._amount, 275)
         self.assertEqual(self.table.pot, 125)
         self.assertEqual(self.table.circle_pot, 0)
@@ -281,6 +313,7 @@ class HoldemTableTest(TableTest):
         self.assertEqual(self.table.circle_pot, 25)
 
         self.table.next_step()  # showdown
+        self.table._active_player = dima
         self.assertEqual(dima._amount, 250)
         self.assertEqual(self.table.pot, 150)
         self.assertEqual(self.table.circle_pot, 0)
@@ -294,13 +327,50 @@ class HoldemTableTest(TableTest):
         self.assertEqual(self.table.pot, 0)
         self.assertEqual(self.table.circle_pot, 0)
 
+    def test_forbidden_bet_for_non_active_player(self):
+        vasya = Player()
+        vasya.id = 97
+        vasya._amount = 400
+        petya = Player()
+        petya.id = 98
+        petya._amount = 400
+        dima = Player()
+        dima.id = 99
+        dima._amount = 400
+
+        self.table.players = []
+        self.table._active_player = None
+        self.table.add_player(vasya)
+        self.table.add_player(petya)
+        self.table.add_player(dima)
+
+        self.table.next_step()  # preflop
+        self.assertRaises(ValueError, self.table.bet, dima, 50)
+        self.assertRaises(ValueError, self.table.bet, petya, 50)
+        self.table.bet(player=vasya, amount=50)
+
+        self.assertRaises(ValueError, self.table.bet, vasya, 50)
+        self.assertRaises(ValueError, self.table.bet, dima, 50)
+        self.table.bet(player=petya, amount=50)
+
+        self.assertRaises(ValueError, self.table.bet, vasya, 50)
+        self.assertRaises(ValueError, self.table.bet, petya, 50)
+        self.table.bet(player=dima, amount=50)
+
     def test_bet(self):
+        self.table.players = []
+        self.table._active_player = None
         player = Player()
         player._amount = 300
+        player.id = 99
         amount = 100
         self.assertEqual(self.table.pot, 0)
         self.assertEqual(self.table.circle_pot, 0)
-        self.table.bet(player, amount)
+        self.assertRaises(ValueError, self.table.bet, player, amount)
+
+        self.table.add_player(player)
+        self.table.clean()
+        self.table.bet(player=player, amount=amount)
         self.assertEqual(self.table.pot, 0)
         self.assertEqual(self.table.circle_pot, amount)
 
